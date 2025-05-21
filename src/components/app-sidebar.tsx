@@ -4,9 +4,8 @@ import * as React from "react"
 import {
   Bot,
   Command,
-  LifeBuoy,
-  Send,
-  Settings2,
+   Send,
+ 
   SquareTerminal,
 } from "lucide-react"
 
@@ -33,13 +32,13 @@ const data = {
   navMain: [
     {
       title: "Home",
-      url: "#",
+      url: "/",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
           title: "Products",
-          url: "/ai",
+          url: "/products",
         },
         {
           title: "Categories",
@@ -47,7 +46,7 @@ const data = {
         },
         {
           title: "Orders",
-          url: "#",
+          url: "/orders",
         },
         
       ],
@@ -105,8 +104,8 @@ const data = {
 
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
+export  function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  return  (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>

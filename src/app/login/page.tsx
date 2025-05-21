@@ -3,7 +3,7 @@ import React from "react";
 import { ArrowLeftFromLine } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { LoginForm } from "@/components/login-form";
+import {LoginForm}from '@/components/login-form';
 import Image from "next/image";
 import Link from "next/link";
 
