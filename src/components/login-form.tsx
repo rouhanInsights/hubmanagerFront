@@ -1,90 +1,89 @@
+//src/components/login-form.tsx
+
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
-interface LoginFormData {
-  email: string;
-  password: string;
-}
-
 export function LoginForm() {
-  const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
-    password: ""
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const router = useRouter(); 
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
+    const endpoint =
+      email === "admin@cff"
+        ?` ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/admin/login`
+        :` ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/login`;
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/login", {
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
+      setLoading(false);
 
-      if (res.ok) {
-        toast.success("Login successful!");
-        localStorage.setItem("token", data.token);
-        router.push("/");
-        return;
-      } else {
+      if (!res.ok) {
         toast.error(data.error || "Login failed");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Immediate reload and redirect based on role
+      if (data.user.role === "admin") {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
       }
     } catch (err) {
-      toast.error("Server error. Please try again.");
+      setLoading(false);
+      toast.error("Server error");
+      console.error("Login error:", err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md space-y-4 p-6 bg-white rounded-md shadow-md w-full">
-      <h2 className="text-2xl font-semibold text-center mb-6">Login</h2>
-
-      <div className="space-y-1">
+    <form onSubmit={handleLogin} className="space-y-4">
+      <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
-          name="email"
           type="email"
-          value={formData.email}
-          onChange={handleChange}
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
       </div>
-
-      <div className="space-y-1">
+      <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
         <Input
           id="password"
-          name="password"
           type="password"
-          value={formData.password}
-          onChange={handleChange}
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
         />
       </div>
-
-      <Button type="submit" className="w-full">
-        Login
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? "Logging in..." : "Login"}
       </Button>
-
-      <p className="text-sm text-center text-muted-foreground">
-        New User?{" "}
+       <p className="text-sm text-center text-muted-foreground">
+       Don &apos;t have an account? Register here{" "}
         <Link href="/signup" className="text-blue-600 hover:underline">
           Sign Up
         </Link>

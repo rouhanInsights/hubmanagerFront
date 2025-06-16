@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AppSidebar } from "@/components/app-sidebar";
+
 import { SalesChart } from "@/components/SalesChart";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -23,6 +23,8 @@ export default function DashboardPage() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [orderCount, setOrderCount] = useState<number>(0);
   const [productCount, setProductCount] = useState<number>(0);
+  const [recentOrders, setRecentOrders] = useState<{ customer_name: string, product_name: string, price: number }[]>([]);
+  const [customerCount, setCustomerCount] = useState<number>(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -60,7 +62,33 @@ export default function DashboardPage() {
           console.error("Error fetching product count:", err);
           toast.error("Could not load product stats");
         });
+
+         // ✅ Fetch recent orders
+    fetch("http://localhost:5000/api/orders/recent")
+      .then((res) => res.json())
+      .then((data) => {
+        setRecentOrders(data);
+      })
+      .catch((err) => {
+        console.error("Error fetching recent orders:", err);
+        toast.error("Could not load recent orders");
+      });
     }
+
+    // ✅ Fetch total customer count
+fetch("http://localhost:5000/api/customers/count")
+  .then((res) => {
+    if (!res.ok) throw new Error("Failed to fetch customer count");
+    return res.json();
+  })
+  .then((data) => {
+    setCustomerCount(data.count || 0);
+  })
+  .catch((err) => {
+    console.error("Error fetching customer count:", err);
+    toast.error("Could not load customer stats");
+  });
+
   }, [router]);
 
   if (!isLoggedIn) return null;
@@ -71,7 +99,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen">
       
       <SidebarProvider>
-        <AppSidebar />
+     
         <SidebarInset>
          <header className="flex h-16 shrink-0 items-center justify-between px-4">
                    <div className="flex items-center gap-2">
@@ -118,7 +146,7 @@ export default function DashboardPage() {
               </div>
               <div className="bg-white p-4 rounded shadow text-center">
                 <p className="text-sm text-gray-500">Total Customers</p>
-                <h2 className="text-2xl font-bold">1,256</h2>
+                <h2 className="text-2xl font-bold">{customerCount}</h2>
               </div>
             </div>
 
@@ -133,26 +161,18 @@ export default function DashboardPage() {
               <div className="bg-white p-4 rounded shadow">
                 <h3 className="text-lg font-semibold mb-2">Recent Orders</h3>
                 <ul className="space-y-2">
-                  <li className="flex justify-between text-sm">
-                    <span>Jane Smith</span>
-                    <span>$250.00</span>
-                  </li>
-                  <li className="flex justify-between text-sm">
-                    <span>John Doe</span>
-                    <span>$189.00</span>
-                  </li>
-                  <li className="flex justify-between text-sm">
-                    <span>Alice Johnson</span>
-                    <span>$329.00</span>
-                  </li>
-                  <li className="flex justify-between text-sm">
-                    <span>Michael Brown</span>
-                    <span>$99.00</span>
-                  </li>
-                  <li className="flex justify-between text-sm">
-                    <span>Emily White</span>
-                    <span>$49.00</span>
-                  </li>
+                  <ul className="space-y-2">
+  {recentOrders.map((order, index) => (
+    <li key={index} className="flex flex-col text-sm border-b pb-1">
+      <span className="font-medium">{order.customer_name}</span>
+      <div className="flex justify-between">
+        <span className="text-gray-600">{order.product_name}</span>
+        <span className="text-green-600 font-semibold">₹{order.price}</span>
+      </div>
+    </li>
+  ))}
+</ul>
+
                 </ul>
               </div>
             </div>

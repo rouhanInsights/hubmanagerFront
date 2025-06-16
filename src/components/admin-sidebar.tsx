@@ -1,3 +1,5 @@
+//src/components/admin-sidebar.tsx
+
 "use client";
 
 import * as React from "react";
@@ -30,25 +32,25 @@ import {
 
 const data = {
   user: {
-    name: "Hub Manager",
-    email: "m@example.com",
+    name: "Admin",
+    email: "admin@cff",
     avatar: "/images/img4.jpeg",
   },
   navMain: [
     {
       title: "Dashboard",
-      url: "/",
+      url: "#",
       icon: LayoutDashboard,
       isActive: true,
       items: [
-        { title: "Categories", url: "/category", icon: Tags },
         { title: "Products", url: "/products", icon: Boxes },
+        { title: "Categories", url: "/categories", icon: Tags },
         { title: "Orders", url: "/orders", icon: Receipt },
       ],
     },
     {
       title: "User Management",
-      url: "/users",
+      url: "#",
       icon: Users,
       isActive: true,
       items: [
@@ -60,18 +62,35 @@ const data = {
     },
     {
       title: "Product Management",
-      url: "/products",
+      url: "#",
       icon: Settings,
       isActive: true,
       items: [
         { title: "Stock Management", url: "/stock", icon: PackageCheck },
-
+      ],
+    },
+    {
+      title: "Admin",
+      url: "#",
+      icon: LayoutDashboard,
+      isActive: true,
+      items: [
+        { title: "Admin Dashboard", url: "/admin", icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: "Hub Manager",
+      url: "#",
+      icon: Users,
+      isActive: true,
+      items: [
+        { title: "Hub Manager Panel", url: "/hubmanager", icon: Users },
       ],
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -83,16 +102,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Command className="size-6" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Hub Manager</span>
+                  <span className="truncate font-semibold">Admin</span>
                 </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

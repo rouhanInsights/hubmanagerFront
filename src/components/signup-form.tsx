@@ -49,8 +49,9 @@ export function RegisterForm() {
         toast.error(data.error || "Registration failed.");
       }
     } catch (err) {
-      toast.error("Server error. Please try again.");
-    }
+  console.error(err); // Add this
+  toast.error("Server error. Please try again.");
+}
   };
 
   return (
