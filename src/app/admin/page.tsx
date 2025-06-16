@@ -1,5 +1,3 @@
-//src/app/admin/page.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,6 +9,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -35,12 +34,44 @@ export default function AdminDashboard() {
     }
   }, [router]);
 
+  const cards = [
+    {
+      title: "Delivery Agents",
+      description: "View and manage all registered delivery agents.",
+      route: "/admin/delivery-agents",
+    },
+    {
+      title: "Hub Managers",
+      description: "Manage hub managers, reset passwords, or block access.",
+      route: "/admin/hub-managers",
+    },
+    {
+      title: "Orders",
+      description: "Track, assign, or cancel orders and view invoice details.",
+      route: "/admin/orders",
+    },
+    {
+      title: "Users",
+      description: "Monitor and manage customers, order history, and bans.",
+      route: "/admin/users",
+    },
+    {
+      title: "Stock",
+      description: "Add, edit or delete products and manage stock.",
+      route: "/stock",
+    },
+    {
+      title: "Payments",
+      description: "Check transactions and process manually.",
+      route: "/admin/payments",
+    },
+   
+  ];
+
   return (
     <SidebarProvider>
-      
-
       <SidebarInset>
-        {/* Top Bar with Breadcrumb and Logout */}
+        {/* Top Bar */}
         <header className="flex h-16 shrink-0 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
@@ -57,7 +88,17 @@ export default function AdminDashboard() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          
+          <Button
+            onClick={() => {
+              localStorage.clear();
+              router.push("/login");
+            }}
+            variant="outline"
+            className="text-sm"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
         </header>
 
         {/* Main Content */}
@@ -68,55 +109,26 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                You have full access to manage the platform.
+                This is your control panel. Choose a section to manage the platform.
               </p>
             </CardContent>
           </Card>
 
           <Separator />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Delivery Agents</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">View and manage all registered delivery agents.</p>
-                <Button onClick={() => router.push("/deliveryagent")}>
-                  Manage DAs
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">Track and monitor all customer orders.</p>
-                <Button onClick={() => router.push("/orders")}>
-                  View Orders
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Logout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4">Securely log out of admin panel.</p>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    localStorage.clear();
-                    router.push("/login");
-                  }}
-                >
-                  Logout
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Dashboard Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            {cards.map((card, idx) => (
+              <Card key={idx}>
+                <CardHeader>
+                  <CardTitle>{card.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="mb-4 text-muted-foreground">{card.description}</p>
+                  <Button onClick={() => router.push(card.route)}>Go to {card.title}</Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </main>
       </SidebarInset>
