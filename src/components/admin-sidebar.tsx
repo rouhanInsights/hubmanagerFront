@@ -44,7 +44,7 @@ const data = {
       isActive: true,
       items: [
         { title: "Products", url: "/products", icon: Boxes },
-        { title: "Categories", url: "/categories", icon: Tags },
+        { title: "Categories", url: "/category", icon: Tags },
         { title: "Orders", url: "/orders", icon: Receipt },
       ],
     },
