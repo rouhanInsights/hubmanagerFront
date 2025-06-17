@@ -27,7 +27,7 @@ export default function HubManagerPanel() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/hubmanagers")
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers`)
       .then((res) => res.json())
       .then((data) => setManagers(data));
   }, []);
@@ -41,8 +41,8 @@ export default function HubManagerPanel() {
   const handleSave = async () => {
     const method = editing ? "PUT" : "POST";
     const url = editing
-      ? `http://localhost:5000/api/hubmanagers/${editing.user_id}`
-      : "http://localhost:5000/api/hubmanagers";
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers/${editing.user_id}`
+      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers`;
 
     const res = await fetch(url, {
       method,
@@ -55,7 +55,7 @@ export default function HubManagerPanel() {
       setDialogOpen(false);
       setForm({ name: "", email: "" });
       setEditing(null);
-      const updated = await fetch("http://localhost:5000/api/hubmanagers").then((r) => r.json());
+      const updated = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers`).then((r) => r.json());
       setManagers(updated);
     } else {
       const err = await res.json();
@@ -67,7 +67,7 @@ export default function HubManagerPanel() {
   const newPassword = prompt("Enter new password:");
   if (!newPassword) return;
 
-  const res = await fetch(`http://localhost:5000/api/hubmanagers/${user_id}/password`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers/${user_id}/password`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password: newPassword }),

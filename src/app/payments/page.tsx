@@ -31,7 +31,7 @@ export default function PaymentPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/payments", {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments`, {
       headers: { Authorization: 'Bearer ${token}' },
     })
       .then((res) => res.json())

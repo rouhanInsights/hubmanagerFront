@@ -41,7 +41,7 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/categories");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories`);
       const data = await res.json();
       setCategories(Array.isArray(data) ? data : []);
     } catch {
@@ -57,7 +57,7 @@ export default function CategoriesPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/users/profile", {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile`, {
       headers: {    Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -78,7 +78,7 @@ export default function CategoriesPage() {
   const handleAdd = async () => {
     if (!newCategory.trim()) return;
     try {
-      const res = await fetch("http://localhost:5000/api/categories", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category_name: newCategory }),
@@ -96,7 +96,7 @@ export default function CategoriesPage() {
 
   const handleUpdate = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/categories/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category_name: editedName }),
@@ -116,7 +116,7 @@ export default function CategoriesPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/categories/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/categories/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error();

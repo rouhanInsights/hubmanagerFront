@@ -59,7 +59,7 @@ export default function AssignOrderPage() {
   const { data: agents = [] } = useQuery<DAUser[]>({
     queryKey: ["agents"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:5000/api/da/approved");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da/approved`);
       if (!res.ok) throw new Error("Failed to fetch agents");
       return res.json();
     },
@@ -71,7 +71,7 @@ export default function AssignOrderPage() {
   } = useQuery<AssignableOrder[]>({
     queryKey: ["assignableOrders"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:5000/api/da-orders/assignable");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da-orders/assignable`);
       if (!res.ok) throw new Error("Failed to fetch assignable orders");
       return res.json().then((data) => data.orders);
     },
@@ -81,7 +81,7 @@ export default function AssignOrderPage() {
   const { data: assignedOrders = [] } = useQuery<AssignedOrder[]>({
     queryKey: ["assignedOrders"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:5000/api/da-orders/assigned");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da-orders/assigned`);
       if (!res.ok) throw new Error("Failed to fetch assigned orders");
       return res.json().then((data) => data.orders);
     },
@@ -95,7 +95,7 @@ export default function AssignOrderPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/da-orders/assign-multiple", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da-orders/assign-multiple`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ da_id: selectedAgent, order_ids: selectedOrders }),

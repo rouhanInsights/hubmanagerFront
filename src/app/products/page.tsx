@@ -66,7 +66,7 @@ export default function ProductListPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/products");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`);
       const data = await res.json();
       const validData: Product[] = Array.isArray(data) ? data : data.products || [];
       setProducts(validData);
@@ -84,7 +84,7 @@ export default function ProductListPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/users/profile", {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -138,8 +138,8 @@ export default function ProductListPage() {
 
   const handleModalSubmit = async () => {
     const url = isEditMode
-      ? `http://localhost:5000/api/products/${modalProduct.product_id}`
-      : "http://localhost:5000/api/products";
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${modalProduct.product_id}`
+      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`;
     const method = isEditMode ? "PUT" : "POST";
 
     try {
@@ -164,7 +164,7 @@ export default function ProductListPage() {
   const handleDelete = async (id?: number) => {
     if (!id || !confirm("Are you sure you want to delete this product?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {

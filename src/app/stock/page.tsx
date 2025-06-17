@@ -28,7 +28,7 @@ export default function StockManagementPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/products");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`);
       const data = await res.json();
       const validData: Product[] = (Array.isArray(data) ? data : data.products || []).map((p: Partial<Product>) => ({
         product_id: p.product_id,
@@ -70,7 +70,7 @@ export default function StockManagementPage() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${product.product_id}/stock`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${product.product_id}/stock`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

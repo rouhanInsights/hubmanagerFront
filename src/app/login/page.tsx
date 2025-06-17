@@ -1,33 +1,11 @@
 "use client";
 import React from "react";
 import { ArrowLeftFromLine } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import {LoginForm}from '@/components/login-form';
 import Image from "next/image";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkLogin = async () => {
-      const token = localStorage.getItem("access_token");
-      if (!token) return;
-  
-      const response = await fetch("http://127.0.0.1:8000/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-  
-      if (response.ok && !data.detail) {
-        router.push("/dashboard");
-      } else {
-        localStorage.removeItem("access_token");
-      }
-    };
-    checkLogin();
-  }, [router]); 
 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">

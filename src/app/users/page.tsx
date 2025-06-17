@@ -48,7 +48,7 @@ export default function CustomerPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/customers/orders", {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/customers/orders`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

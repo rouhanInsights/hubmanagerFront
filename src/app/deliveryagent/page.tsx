@@ -35,7 +35,7 @@ export default function DeliveryAgentPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/da")
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da`)
       .then((res) => res.json())
       .then((data) => setAgents(data))
       .catch(() => toast.error("Failed to fetch agents"));
@@ -43,7 +43,7 @@ export default function DeliveryAgentPage() {
 
   const updateStatus = async (id: number, status: "approved" | "rejected") => {
     try {
-      const res = await fetch(`http://localhost:5000/api/da/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -60,7 +60,7 @@ export default function DeliveryAgentPage() {
 
   const toggleAvailability = async (id: number, availability: boolean) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/da/${id}/availability`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da/${id}/availability`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ available: availability }),
