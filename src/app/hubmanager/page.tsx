@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,6 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 interface HubManager {
@@ -21,73 +24,106 @@ interface HubManager {
 }
 
 export default function HubManagerPanel() {
+  const router = useRouter();
   const [managers, setManagers] = useState<HubManager[]>([]);
-  const [form, setForm] = useState({ name: "", email: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [editing, setEditing] = useState<HubManager | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers`)
-      .then((res) => res.json())
-      .then((data) => setManagers(data));
-  }, []);
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const handleDialogOpen = () => {
-    setEditing(null);
-    setForm({ name: "", email: "" });
-    setDialogOpen(true);
-  };
+  useEffect(() => {
+    fetch(`${API}/api/hubmanagers`)
+      .then((res) => res.json())
+      .then((data) => setManagers(data))
+      .catch(() => toast.error("Failed to fetch hub managers"));
+  }, [API]);
 
   const handleSave = async () => {
     const method = editing ? "PUT" : "POST";
     const url = editing
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers/${editing.user_id}`
-      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers`;
+      ? `${API}/api/hubmanagers/${editing.user_id}`
+      : `${API}/api/hubmanagers`;
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+    const payload = editing
+      ? { name: form.name, email: form.email }
+      : { name: form.name, email: form.email, password: form.password };
 
-    if (res.ok) {
-      toast.success(editing ? "Updated successfully" : "Created successfully");
-      setDialogOpen(false);
-      setForm({ name: "", email: "" });
-      setEditing(null);
-      const updated = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers`).then((r) => r.json());
-      setManagers(updated);
-    } else {
-      const err = await res.json();
-      toast.error(err.error || "Error occurred");
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        toast.success(editing ? "Updated successfully" : "Created successfully");
+        setDialogOpen(false);
+        setForm({ name: "", email: "", password: "" });
+        setEditing(null);
+        const updated = await fetch(`${API}/api/hubmanagers`).then((r) => r.json());
+        setManagers(updated);
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "Error occurred");
+      }
+    } catch {
+      toast.error("Server error");
     }
   };
 
   const handleResetPassword = async (user_id: number) => {
-  const newPassword = prompt("Enter new password:");
-  if (!newPassword) return;
+    const newPassword = prompt("Enter new password:");
+    if (!newPassword) return;
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/hubmanagers/${user_id}/password`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password: newPassword }),
-  });
+    try {
+      const res = await fetch(`${API}/api/hubmanagers/${user_id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword }),
+      });
 
-  if (res.ok) {
-    toast.success("Password updated");
-  } else {
-    toast.error("Failed to reset password");
-  }
-};
+      if (res.ok) {
+        toast.success("Password updated");
+      } else {
+        toast.error("Failed to reset password");
+      }
+    } catch {
+      toast.error("Server error");
+    }
+  };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Hub Manager Panel</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Hub Manager Panel</h2>
+        <Button
+          onClick={handleLogout}
+          variant="outline"
+          className="text-sm"
+        >
+          <LogOut className="mr-1 h-4 w-4" />
+          Logout
+        </Button>
+      </div>
+
+      <Separator className="mb-6" />
+
+      <div className="flex justify-end mb-6">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={handleDialogOpen}>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setForm({ name: "", email: "", password: "" });
+              }}
+            >
               + Add Hub Manager
             </Button>
           </DialogTrigger>
@@ -109,6 +145,16 @@ export default function HubManagerPanel() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
               </div>
+              {!editing && (
+                <div>
+                  <Label>Password</Label>
+                  <Input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  />
+                </div>
+              )}
               <Button className="w-full" onClick={handleSave}>
                 {editing ? "Update" : "Create"}
               </Button>
@@ -135,7 +181,7 @@ export default function HubManagerPanel() {
                 variant="outline"
                 onClick={() => {
                   setEditing(m);
-                  setForm({ name: m.name, email: m.email });
+                  setForm({ name: m.name, email: m.email, password: "" });
                   setDialogOpen(true);
                 }}
               >

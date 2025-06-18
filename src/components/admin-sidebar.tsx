@@ -1,5 +1,3 @@
-//src/components/admin-sidebar.tsx
-
 "use client";
 
 import * as React from "react";
@@ -15,6 +13,9 @@ import {
   CreditCard,
   Settings,
   PackageCheck,
+  ShieldCheck,
+  UserCog,
+  Warehouse,
   Command,
 } from "lucide-react";
 
@@ -39,7 +40,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/",
       icon: LayoutDashboard,
       isActive: true,
       items: [
@@ -50,8 +51,8 @@ const data = {
     },
     {
       title: "User Management",
-      url: "#",
-      icon: Users,
+      url: "/users",
+      icon: UserCog,
       isActive: true,
       items: [
         { title: "Users", url: "/users", icon: UserRound },
@@ -62,8 +63,8 @@ const data = {
     },
     {
       title: "Product Management",
-      url: "#",
-      icon: Settings,
+      url: "/stock",
+      icon: Warehouse,
       isActive: true,
       items: [
         { title: "Stock Management", url: "/stock", icon: PackageCheck },
@@ -71,8 +72,8 @@ const data = {
     },
     {
       title: "Admin",
-      url: "#",
-      icon: LayoutDashboard,
+      url: "/admin",
+      icon: ShieldCheck,
       isActive: true,
       items: [
         { title: "Admin Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -80,7 +81,7 @@ const data = {
     },
     {
       title: "Hub Manager",
-      url: "#",
+      url: "/hubmanager",
       icon: Users,
       isActive: true,
       items: [
