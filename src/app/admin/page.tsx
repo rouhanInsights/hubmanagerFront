@@ -30,7 +30,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [adminName, setAdminName] = useState("Super Admin");
+  const [adminName, ] = useState("Super Admin");
 
   const [stats, setStats] = useState({
     users: 0,

@@ -187,7 +187,6 @@ export default function ProductListPage() {
 
   return (
     <SidebarProvider>
-    
       <SidebarInset>
         <header className="flex h-16 items-center justify-between px-4 border-b mb-4 sticky top-0 z-3 bg-white">
           <div className="flex items-center gap-2">
@@ -272,75 +271,73 @@ export default function ProductListPage() {
             </table>
           </div>
 
-          {/* Reusable Modal for Add/Edit */}
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-auto">
               <DialogHeader>
                 <DialogTitle>{isEditMode ? "Edit Product" : "Add Product"}</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4">
-  {Object.entries(modalProduct).map(([key, val]) => (
-    <div key={key}>
-      <Label htmlFor={key}>{key.replace(/_/g, " ")}</Label>
-      {key === "image_url" ? (
-        <div className="space-y-2">
-          <Input
-            id="image_url"
-            value={modalProduct.image_url}
-            placeholder="Enter image URL or upload"
-            onChange={(e) => handleModalChange("image_url", e.target.value)}
-          />
-          <Input
-            id="file"
-            type="file"
-            accept="image/*"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
+                {Object.entries(modalProduct).map(([key, val]) => (
+                  <div key={key}>
+                    <Label htmlFor={key}>{key.replace(/_/g, " ")}</Label>
+                    {key === "image_url" ? (
+                      <div className="space-y-2">
+                        <Input
+                          id="image_url"
+                          value={modalProduct.image_url}
+                          placeholder="Enter image URL or upload"
+                          onChange={(e) => handleModalChange("image_url", e.target.value)}
+                        />
+                        <Input
+                          id="file"
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
 
-              const formData = new FormData();
-              formData.append("file", file);
-              try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
-                  method: "POST",
-                  body: formData,
-                });
-                const data = await res.json();
-                if (data.secure_url) {
-                  handleModalChange("image_url", data.secure_url);
-                  toast.success("Image uploaded");
-                } else {
-                  toast.error("Upload failed");
-                }
-              } catch (err) {
-                toast.error("Upload error");
-                console.error(err);
-              }
-            }}
-          />
-        </div>
-      ) : (
-        <Input
-          id={key}
-          value={typeof val === "boolean" ? (val ? "Yes" : "No") : val}
-          onChange={(e) =>
-            handleModalChange(
-              key as keyof Product,
-              ["product_published", "product_featured", "product_visibility"].includes(key)
-                ? e.target.value === "Yes"
-                : key === "price" || key === "sale_price"
-                ? parseFloat(e.target.value)
-                : key === "stock_quantity"
-                ? parseInt(e.target.value)
-                : e.target.value
-            )
-          }
-        />
-      )}
-    </div>
-  ))}
-</div>
-
+                            const formData = new FormData();
+                            formData.append("file", file);
+                            try {
+                              const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
+                                method: "POST",
+                                body: formData,
+                              });
+                              const data = await res.json();
+                              if (data.secure_url) {
+                                handleModalChange("image_url", data.secure_url);
+                                toast.success("Image uploaded");
+                              } else {
+                                toast.error("Upload failed");
+                              }
+                            } catch (err) {
+                              toast.error("Upload error");
+                              console.error(err);
+                            }
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <Input
+                        id={key}
+                        value={typeof val === "boolean" ? (val ? "Yes" : "No") : val}
+                        onChange={(e) =>
+                          handleModalChange(
+                            key as keyof Product,
+                            ["product_published", "product_featured", "product_visibility"].includes(key)
+                              ? e.target.value === "Yes"
+                              : key === "price" || key === "sale_price"
+                              ? parseFloat(e.target.value)
+                              : key === "stock_quantity"
+                              ? parseInt(e.target.value)
+                              : e.target.value
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
               <DialogFooter>
                 <Button onClick={handleModalSubmit}>
                   {isEditMode ? "Update Product" : "Add Product"}

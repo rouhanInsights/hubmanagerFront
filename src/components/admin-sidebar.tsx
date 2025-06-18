@@ -11,7 +11,6 @@ import {
   Truck,
   ClipboardCheck,
   CreditCard,
-  Settings,
   PackageCheck,
   ShieldCheck,
   UserCog,

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -9,7 +8,6 @@ import { toast } from "sonner";
 export default function HubManagerLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
   const API = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -33,7 +31,7 @@ export default function HubManagerLogin() {
       toast.success("Login successful");
       localStorage.setItem("user", JSON.stringify(data.user));
       // router.push("/hubmanager/dashboard"); // your actual dashboard route
-    } catch (error) {
+    } catch {
       toast.error("Server error");
     }
   };
