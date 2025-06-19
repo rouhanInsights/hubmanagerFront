@@ -66,9 +66,13 @@ export default function ProductListPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`
+      );
       const data = await res.json();
-      const validData: Product[] = Array.isArray(data) ? data : data.products || [];
+      const validData: Product[] = Array.isArray(data)
+        ? data
+        : data.products || [];
       setProducts(validData);
     } catch (err) {
       console.error(err);
@@ -162,11 +166,15 @@ export default function ProductListPage() {
   };
 
   const handleDelete = async (id?: number) => {
-    if (!id || !confirm("Are you sure you want to delete this product?")) return;
+    if (!id || !confirm("Are you sure you want to delete this product?"))
+      return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (res.ok) {
         toast.success("Deleted");
         fetchProducts();
@@ -194,7 +202,11 @@ export default function ProductListPage() {
             <h1 className="text-xl font-semibold">Products</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={openAddModal} className="text-sm">
+            <Button
+              variant="outline"
+              onClick={openAddModal}
+              className="text-sm"
+            >
               <PlusCircle className="w-4 h-4 mr-1" /> Add Product
             </Button>
             <Button
@@ -216,7 +228,9 @@ export default function ProductListPage() {
             <Input
               placeholder="Search..."
               value={query}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setQuery(e.target.value)
+              }
               className="w-1/4"
             />
           </div>
@@ -244,26 +258,51 @@ export default function ProductListPage() {
               </thead>
               <tbody>
                 {filtered.map((product) => (
-                  <tr key={product.product_id} className="border-b hover:bg-gray-50">
+                  <tr
+                    key={product.product_id}
+                    className="border-b hover:bg-gray-50"
+                  >
                     <td className="p-2">
-                      <Image src={product.image_url || "/placeholder.png"} alt={product.name} width={40} height={40} className="w-10 h-10 object-cover rounded" />
+                      <Image
+                        src={product.image_url || "/placeholder.png"}
+                        alt={product.name}
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 object-cover rounded"
+                      />
                     </td>
                     <td className="p-2">{product.name}</td>
                     <td className="p-2">{product.category_id}</td>
                     <td className="p-2">₹{Number(product.price).toFixed(2)}</td>
-                    <td className="p-2">₹{Number(product.sale_price || 0).toFixed(2)}</td>
+                    <td className="p-2">
+                      ₹{Number(product.sale_price || 0).toFixed(2)}
+                    </td>
                     <td className="p-2">{product.stock_quantity}</td>
                     <td className="p-2">{product.product_stock_available}</td>
-                    <td className="p-2">{product.product_published ? "Yes" : "No"}</td>
-                    <td className="p-2">{product.product_featured ? "Yes" : "No"}</td>
-                    <td className="p-2">{product.product_visibility ? "Yes" : "No"}</td>
+                    <td className="p-2">
+                      {product.product_published ? "Yes" : "No"}
+                    </td>
+                    <td className="p-2">
+                      {product.product_featured ? "Yes" : "No"}
+                    </td>
+                    <td className="p-2">
+                      {product.product_visibility ? "Yes" : "No"}
+                    </td>
                     <td className="p-2">{product.product_tax}</td>
                     <td className="p-2">{product.weight}</td>
                     <td className="p-2">{product.product_short_description}</td>
                     <td className="p-2">{product.description}</td>
                     <td className="p-2">
-                      <Button size="sm" onClick={() => openEditModal(product)}>Edit</Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(product.product_id!)}>Delete</Button>
+                      <Button size="sm" onClick={() => openEditModal(product)}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(product.product_id!)}
+                      >
+                        Delete
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -274,7 +313,9 @@ export default function ProductListPage() {
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-auto">
               <DialogHeader>
-                <DialogTitle>{isEditMode ? "Edit Product" : "Add Product"}</DialogTitle>
+                <DialogTitle>
+                  {isEditMode ? "Edit Product" : "Add Product"}
+                </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4">
                 {Object.entries(modalProduct).map(([key, val]) => (
@@ -286,7 +327,9 @@ export default function ProductListPage() {
                           id="image_url"
                           value={modalProduct.image_url}
                           placeholder="Enter image URL or upload"
-                          onChange={(e) => handleModalChange("image_url", e.target.value)}
+                          onChange={(e) =>
+                            handleModalChange("image_url", e.target.value)
+                          }
                         />
                         <Input
                           id="file"
@@ -299,10 +342,13 @@ export default function ProductListPage() {
                             const formData = new FormData();
                             formData.append("file", file);
                             try {
-                              const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
-                                method: "POST",
-                                body: formData,
-                              });
+                              const res = await fetch(
+                                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`,
+                                {
+                                  method: "POST",
+                                  body: formData,
+                                }
+                              );
                               const data = await res.json();
                               if (data.secure_url) {
                                 handleModalChange("image_url", data.secure_url);
@@ -320,11 +366,23 @@ export default function ProductListPage() {
                     ) : (
                       <Input
                         id={key}
-                        value={typeof val === "boolean" ? (val ? "Yes" : "No") : val}
+                        value={
+                          typeof val === "boolean"
+                            ? val
+                              ? "Yes"
+                              : "No"
+                            : typeof val === "number"
+                            ? String(val)
+                            : val ?? ""
+                        }
                         onChange={(e) =>
                           handleModalChange(
                             key as keyof Product,
-                            ["product_published", "product_featured", "product_visibility"].includes(key)
+                            [
+                              "product_published",
+                              "product_featured",
+                              "product_visibility",
+                            ].includes(key)
                               ? e.target.value === "Yes"
                               : key === "price" || key === "sale_price"
                               ? parseFloat(e.target.value)
