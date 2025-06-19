@@ -136,7 +136,7 @@ export default function DeliveryAgentPage() {
                   <th className="p-2 text-left">Phone</th>
                   <th className="p-2 text-left">Vehicle</th>
                   <th className="p-2 text-left">Status</th>
-                  <th className="p-2 text-left">Availability</th>
+                  <th className="p-2 text-left">Present Today</th>
                   <th className="p-2 text-left">Image</th>
                   <th className="p-2 text-left">Actions</th>
                 </tr>
