@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { SalesChart } from "@/components/SalesChart";
 import {
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
@@ -18,8 +17,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -104,7 +101,6 @@ export default function DashboardPage() {
           <SidebarInset>
             <header className="flex h-16 shrink-0 items-center justify-between px-4">
               <div className="flex items-center gap-2">
-                <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="mr-2 h-4" />
                 <Breadcrumb>
                   <BreadcrumbList>
@@ -118,23 +114,10 @@ export default function DashboardPage() {
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
-              <Button
-                onClick={() => {
-                  localStorage.removeItem("token");
-                  router.push("/login");
-                }}
-                variant="outline"
-                className="text-sm"
-              >
-                <LogOut />
-                Logout
-              </Button>
             </header>
 
             <div className="flex-1 p-6 bg-gray-50">
-              <header className="mb-6 border-b pb-2">
-                <h1 className="text-2xl font-semibold">Dashboard</h1>
-              </header>
+              
 
               {/* ✅ Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

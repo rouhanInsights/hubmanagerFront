@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,8 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 interface HubManager {
@@ -24,7 +21,6 @@ interface HubManager {
 }
 
 export default function HubManagerPanel() {
-  const router = useRouter();
   const [managers, setManagers] = useState<HubManager[]>([]);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [editing, setEditing] = useState<HubManager | null>(null);
@@ -93,29 +89,10 @@ export default function HubManagerPanel() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/login");
-  };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Hub Manager Panel</h2>
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="text-sm"
-        >
-          <LogOut className="mr-1 h-4 w-4" />
-          Logout
-        </Button>
-      </div>
-
-      <Separator className="mb-6" />
-
-      <div className="flex justify-end mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex justify-end mb-4 sm:mb-6">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -127,7 +104,7 @@ export default function HubManagerPanel() {
               + Add Hub Manager
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[400px]">
+          <DialogContent className="w-[90vw] max-w-sm sm:max-w-md">
             <DialogTitle>{editing ? "Edit Hub Manager" : "Add Hub Manager"}</DialogTitle>
             <div className="space-y-4">
               <div>
@@ -167,18 +144,19 @@ export default function HubManagerPanel() {
         {managers.map((m) => (
           <div
             key={m.user_id}
-            className="flex justify-between items-center border p-4 rounded-md"
+            className="flex flex-col sm:flex-row sm:justify-between sm:items-center border p-4 rounded-md gap-3"
           >
             <div>
               <p className="font-medium">{m.name}</p>
-              <p className="text-sm text-muted-foreground">{m.email}</p>
+              <p className="text-sm text-muted-foreground break-all">{m.email}</p>
               <p className="text-xs text-muted-foreground">
                 Created: {new Date(m.created_at).toLocaleDateString()}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   setEditing(m);
                   setForm({ name: m.name, email: m.email, password: "" });
@@ -187,7 +165,11 @@ export default function HubManagerPanel() {
               >
                 Edit
               </Button>
-              <Button variant="ghost" onClick={() => handleResetPassword(m.user_id)}>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto text-red-600"
+                onClick={() => handleResetPassword(m.user_id)}
+              >
                 Reset Password
               </Button>
             </div>

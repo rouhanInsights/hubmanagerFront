@@ -1,14 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useQuery } from "@tanstack/react-query";
 import { useState, Fragment } from "react";
@@ -39,7 +36,6 @@ const fetchOrders = async (): Promise<{ orders: Order[] }> => {
 };
 
 export default function OrdersPage() {
-  const router = useRouter();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["orders"],
@@ -62,23 +58,6 @@ export default function OrdersPage() {
     <SidebarProvider>
       
       <SidebarInset>
-        <header className="flex h-16 items-center justify-between px-4 border-b mb-4 sticky top-0 z-30 bg-white">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <h1 className="text-xl font-semibold">All Orders</h1>
-          </div>
-          <Button
-            onClick={() => {
-              localStorage.removeItem("token");
-              router.push("/login");
-            }}
-            variant="outline"
-            className="text-sm"
-          >
-            <LogOut className="mr-1 h-4 w-4" />
-            Logout
-          </Button>
-        </header>
 
         <main className="p-6 bg-white min-h-screen">
           <div className="overflow-auto rounded-md shadow bg-white">

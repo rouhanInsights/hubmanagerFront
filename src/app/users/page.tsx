@@ -2,12 +2,11 @@
 
 import { useEffect, useState, Fragment } from "react";
 import { toast } from "sonner";
-import { LogOut, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import {
   Collapsible,
@@ -83,23 +82,7 @@ export default function CustomerPage() {
     <SidebarProvider>
     
       <SidebarInset>
-        <header className="flex h-16 items-center justify-between px-4 border-b mb-4">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <h1 className="text-xl font-semibold">Customers</h1>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              localStorage.removeItem("token");
-              router.push("/login");
-            }}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </header>
-
+        <header className="flex mb-4"></header>
         <div className="flex items-center gap-2 mb-4 px-4">
           <Search className="text-muted-foreground w-4 h-4" />
           <Input

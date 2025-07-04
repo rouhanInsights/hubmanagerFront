@@ -3,21 +3,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { LogOut, Download } from "lucide-react";
+import {Download } from "lucide-react";
 
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset,} from "@/components/ui/sidebar";
 
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+
 
 interface Agent {
   user_id: number;
@@ -32,7 +23,6 @@ interface Agent {
 
 export default function DeliveryAgentPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da`)
@@ -97,34 +87,6 @@ export default function DeliveryAgentPage() {
     <SidebarProvider>
      
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Hello User</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Delivery Agents</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-          <Button
-            onClick={() => {
-              localStorage.removeItem("token");
-              router.push("/login");
-            }}
-            variant="outline"
-            className="text-sm"
-          >
-            <LogOut className="mr-1 h-4 w-4" />
-            Logout
-          </Button>
-        </header>
 
         <div className="p-6">
           <div className="overflow-auto">

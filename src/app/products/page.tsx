@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LogOut, PlusCircle } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +19,8 @@ import { Label } from "@/components/ui/label";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
+
 
 interface Product {
   product_id?: number;
@@ -144,29 +144,37 @@ export default function ProductListPage() {
   };
 
   const handleModalSubmit = async () => {
-    const url = isEditMode
-      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${modalProduct.product_id}`
-      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`;
-    const method = isEditMode ? "PUT" : "POST";
+  const { price, sale_price, stock_quantity } = modalProduct;
 
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(modalProduct),
-      });
-      if (res.ok) {
-        toast.success(isEditMode ? "Product updated" : "Product added");
-        setModalOpen(false);
-        fetchProducts();
-      } else {
-        toast.error("Save failed");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Server error");
+  if (price < 0 || sale_price < 0 || stock_quantity < 0) {
+    toast.error("Price, Sale Price, and Stock Quantity must be 0 or more");
+    return;
+  }
+
+  const url = isEditMode
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${modalProduct.product_id}`
+    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`;
+  const method = isEditMode ? "PUT" : "POST";
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(modalProduct),
+    });
+    if (res.ok) {
+      toast.success(isEditMode ? "Product updated" : "Product added");
+      setModalOpen(false);
+      fetchProducts();
+    } else {
+      toast.error("Save failed");
     }
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error("Server error");
+  }
+};
+
 
   const handleDelete = async (id?: number) => {
     if (!id || !confirm("Are you sure you want to delete this product?"))
@@ -199,45 +207,25 @@ export default function ProductListPage() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        <header className="flex h-16 items-center justify-between px-4 border-b mb-4 sticky top-0 z-3 bg-white">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <h1 className="text-xl font-semibold">Products</h1>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={openAddModal}
-              className="text-sm"
-            >
-              <PlusCircle className="w-4 h-4 mr-1" /> Add Product
-            </Button>
-            <Button
-              onClick={() => {
-                localStorage.removeItem("token");
-                router.push("/login");
-              }}
-              variant="outline"
-              className="text-sm"
-            >
-              <LogOut className="mr-1 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </header>
-
         <main className="p-4 bg-white rounded shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <Input
-              placeholder="Search..."
-              value={query}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setQuery(e.target.value)
-              }
-              className="w-1/4"
-            />
-          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+  <Input
+    placeholder="Search..."
+    value={query}
+    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+      setQuery(e.target.value)
+    }
+    className="w-full sm:w-1/2"
+  />
 
+  <Button
+    onClick={openAddModal}
+    className="w-full sm:w-auto"
+  >
+    <PlusCircle className="w-4 h-4 mr-2" />
+    Add Product
+  </Button>
+</div>
           <div className="overflow-auto bg-white rounded shadow">
             <table className="w-full text-sm text-left table-auto">
               <thead className="bg-white border-b font-medium text-nowrap">
@@ -407,6 +395,7 @@ export default function ProductListPage() {
           id={key}
           type="number"
           value={val ?? ""}
+          min={0}
           onChange={(e) =>
             handleModalChange(
               key as keyof Product,
@@ -432,8 +421,6 @@ export default function ProductListPage() {
     </div>
   );
 })}
-
-
               </div>
               <DialogFooter>
                 <Button onClick={handleModalSubmit}>

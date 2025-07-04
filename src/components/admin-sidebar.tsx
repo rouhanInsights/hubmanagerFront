@@ -30,21 +30,40 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = {
-  user: {
-    name: "Admin",
-    email: "admin@cff",
+export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [user, setUser] = React.useState({
+    name: "Loading...",
+    email: "",
     avatar: "/images/img4.jpeg",
-  },
-  navMain: [
+  });
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.role === "admin") {
+          setUser({
+            name: parsed.name || "Admin",
+            email: parsed.email || "admin@cff",
+            avatar: "/images/img4.jpeg",
+          });
+        }
+      } catch {
+        console.error("Failed to parse user from localStorage");
+      }
+    }
+  }, []);
+
+  const navMain = [
     {
       title: "Dashboard",
       url: "/",
       icon: LayoutDashboard,
       isActive: true,
       items: [
-        { title: "Products", url: "/products", icon: Boxes },
         { title: "Categories", url: "/category", icon: Tags },
+        { title: "Products", url: "/products", icon: Boxes },
         { title: "Orders", url: "/orders", icon: Receipt },
       ],
     },
@@ -87,10 +106,8 @@ const data = {
         { title: "Hub Manager Panel", url: "/hubmanager", icon: Users },
       ],
     },
-  ],
-};
+  ];
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -102,7 +119,8 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                   <Command className="size-6" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Admin</span>
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-muted-foreground">{user.email}</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -111,11 +129,11 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

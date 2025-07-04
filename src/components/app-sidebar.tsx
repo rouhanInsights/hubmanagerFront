@@ -28,13 +28,32 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = {
-  user: {
-    name: "Hub Manager",
-    email: "m@example.com",
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [user, setUser] = React.useState({
+    name: "Loading...",
+    email: "loading@example.com",
     avatar: "/images/img4.jpeg",
-  },
-  navMain: [
+  });
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          setUser({
+            name: parsed.name || "Hub Manager",
+            email: parsed.email || "hub@example.com",
+            avatar: "/images/img4.jpeg",
+          });
+        } catch {
+          console.error("Failed to parse user data from localStorage");
+        }
+      }
+    }
+  }, []);
+
+  const navMain = [
     {
       title: "Dashboard",
       url: "/",
@@ -65,13 +84,10 @@ const data = {
       isActive: true,
       items: [
         { title: "Stock Management", url: "/stock", icon: PackageCheck },
-
       ],
     },
-  ],
-};
+  ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -83,18 +99,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Command className="size-6" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Hub Manager</span>
+                  <span className="truncate font-semibold">{user.name}</span>
+                  <span className="truncate text-muted-foreground">{user.email}</span>
                 </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

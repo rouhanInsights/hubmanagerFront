@@ -1,16 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 
 interface Payment {
   order_id: number;
@@ -51,21 +48,7 @@ export default function PaymentPage() {
     <SidebarProvider>
       
       <SidebarInset>
-        <header className="flex h-16 items-center justify-between px-4 border-b mb-4">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <h1 className="text-xl font-semibold">Payment Records</h1>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              localStorage.removeItem("token");
-              router.push("/login");
-            }}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+        <header className="flex  mb-4">
         </header>
 
         <main className="p-4">

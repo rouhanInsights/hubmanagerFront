@@ -7,22 +7,10 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-
-
 
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 interface Category {
@@ -137,38 +125,9 @@ export default function CategoriesPage() {
      <SidebarProvider>
           
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center justify-between px-4">
-              <div className="flex items-center gap-2">
-                <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">Hello User</BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>Update Categories</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
-          <Button
-            onClick={() => {
-              localStorage.removeItem("token");
-              router.push("/login");
-            }}
-            variant="outline"
-            className="text-sm"
-          >
-            <LogOut className="mr-1 h-4 w-4" />
-            Logout
-          </Button>
-        </header>
 
         <main className="p-4 bg-white rounded shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Categories</h2>
             <Input
               placeholder="Search..."
               value={query}

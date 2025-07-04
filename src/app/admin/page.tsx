@@ -5,11 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import {
-  LogOut,
   Users,
   Package,
   UserCog,
@@ -17,14 +14,7 @@ import {
   ShoppingCart,
   IndianRupee,
 } from "lucide-react";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
@@ -127,35 +117,6 @@ export default function AdminDashboard() {
   return (
     <SidebarProvider>
       <SidebarInset>
-        {/* Top Bar */}
-        <header className="flex h-16 items-center justify-between px-6 border-b bg-white shadow-sm">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mx-2 h-5" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Admin</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-          <Button
-            onClick={() => {
-              localStorage.clear();
-              router.push("/login");
-            }}
-            variant="ghost"
-            className="text-sm"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </header>
 
         {/* Main Content */}
         <main className="p-6 space-y-6">

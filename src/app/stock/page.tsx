@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import {
   SidebarProvider,
   SidebarInset,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 interface Product {
@@ -98,9 +97,8 @@ export default function StockManagementPage() {
     <SidebarProvider>
       
       <SidebarInset>
-        <SidebarTrigger className="-ml-1" />
         <div className="p-4">
-          <h1 className="text-xl font-semibold mb-4">Stock Management</h1>
+          
           <div className="overflow-auto rounded bg-white shadow">
             <table className="w-full text-sm text-left table-auto">
               <thead className="bg-white border-b font-medium">
