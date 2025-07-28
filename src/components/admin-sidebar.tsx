@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   LayoutDashboard,
   Boxes,
+  Stars,
   Tags,
   Receipt,
   Users,
@@ -65,6 +66,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         { title: "Categories", url: "/category", icon: Tags },
         { title: "Products", url: "/products", icon: Boxes },
         { title: "Orders", url: "/orders", icon: Receipt },
+        { title: "Feedbacks", url: "/feedback", icon: Stars },
       ],
     },
     {

@@ -24,6 +24,7 @@ function getPageTitle(pathname: string) {
     "/products": "Products",
     "/category": "Categories",
     "/orders": "All Orders",
+    "/feedback": "Customer Feedback",
     "/users": "Customers",
     "/deliveryagent": "Delivery Agents",
     "/assign": "Assigned Orders",
