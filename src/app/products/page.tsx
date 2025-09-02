@@ -21,13 +21,12 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 
-
 interface Product {
   product_id?: number;
   name: string;
   category_id: string;
   category_name?: string; // for display
-  created_at?: string;     // for display
+  created_at?: string;    // for display
   price: number;
   sale_price: number;
   stock_quantity: number;
@@ -35,13 +34,12 @@ interface Product {
   product_published: boolean;
   product_featured: boolean;
   product_visibility: boolean;
-  product_tax: string;
+  product_tax: number;           // <-- number now
   weight: string;
   product_short_description: string;
   description: string;
   image_url: string;
 }
-
 
 export default function ProductListPage() {
   const router = useRouter();
@@ -60,7 +58,7 @@ export default function ProductListPage() {
     product_published: true,
     product_featured: false,
     product_visibility: true,
-    product_tax: "",
+    product_tax: 0,              // <-- initial 0
     weight: "",
     product_short_description: "",
     description: "",
@@ -120,7 +118,7 @@ export default function ProductListPage() {
       product_published: true,
       product_featured: false,
       product_visibility: true,
-      product_tax: "",
+      product_tax: 0,           // <-- initial 0
       weight: "",
       product_short_description: "",
       description: "",
@@ -131,7 +129,10 @@ export default function ProductListPage() {
   };
 
   const openEditModal = (product: Product) => {
-    setModalProduct(product);
+    setModalProduct({
+      ...product,
+      product_tax: Number(product.product_tax ?? 0), // ensure number in edit
+    });
     setIsEditMode(true);
     setModalOpen(true);
   };
@@ -144,37 +145,38 @@ export default function ProductListPage() {
   };
 
   const handleModalSubmit = async () => {
-  const { price, sale_price, stock_quantity } = modalProduct;
+    const { price, sale_price, stock_quantity, product_tax } = modalProduct;
 
-  if (price < 0 || sale_price < 0 || stock_quantity < 0) {
-    toast.error("Price, Sale Price, and Stock Quantity must be 0 or more");
-    return;
-  }
-
-  const url = isEditMode
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${modalProduct.product_id}`
-    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`;
-  const method = isEditMode ? "PUT" : "POST";
-
-  try {
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(modalProduct),
-    });
-    if (res.ok) {
-      toast.success(isEditMode ? "Product updated" : "Product added");
-      setModalOpen(false);
-      fetchProducts();
-    } else {
-      toast.error("Save failed");
+    if (price < 0 || sale_price < 0 || stock_quantity < 0 || product_tax < 0) {
+      toast.error("Price, Sale Price, Stock Quantity, and Tax must be 0 or more");
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    toast.error("Server error");
-  }
-};
 
+    const url = isEditMode
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${modalProduct.product_id}`
+      : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products`;
+    const method = isEditMode ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(modalProduct),
+      });
+      if (res.ok) {
+        toast.success(isEditMode ? "Product updated" : "Product added");
+        setModalOpen(false);
+        fetchProducts();
+      } else {
+        const txt = await res.text();
+        toast.error(txt || "Save failed");
+        console.error("Save failed:", txt);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Server error");
+    }
+  };
 
   const handleDelete = async (id?: number) => {
     if (!id || !confirm("Are you sure you want to delete this product?"))
@@ -209,23 +211,24 @@ export default function ProductListPage() {
       <SidebarInset>
         <main className="p-4 bg-white rounded shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-  <Input
-    placeholder="Search..."
-    value={query}
-    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-      setQuery(e.target.value)
-    }
-    className="w-full sm:w-1/2"
-  />
+            <Input
+              placeholder="Search..."
+              value={query}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setQuery(e.target.value)
+              }
+              className="w-full sm:w-1/2"
+            />
 
-  <Button
-    onClick={openAddModal}
-    className="w-full sm:w-auto"
-  >
-    <PlusCircle className="w-4 h-4 mr-2" />
-    Add Product
-  </Button>
-</div>
+            <Button
+              onClick={openAddModal}
+              className="w-full sm:w-auto"
+            >
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
+
           <div className="overflow-auto bg-white rounded shadow">
             <table className="w-full text-sm text-left table-auto">
               <thead className="bg-white border-b font-medium text-nowrap">
@@ -279,7 +282,7 @@ export default function ProductListPage() {
                     <td className="p-2">
                       {product.product_visibility ? "Yes" : "No"}
                     </td>
-                    <td className="p-2">{product.product_tax}</td>
+                    <td className="p-2">{Number(product.product_tax).toFixed(2)}</td>
                     <td className="p-2">{product.weight}</td>
                     <td className="p-2">{product.product_short_description}</td>
                     <td className="p-2">{product.description}</td>
@@ -309,118 +312,138 @@ export default function ProductListPage() {
                 </DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-4">
-               {Object.entries(modalProduct).map(([key, val]) => {
-  const isReadonly = isEditMode && ["product_id", "created_at", "category_id"].includes(key);
+                {Object.entries(modalProduct).map(([key, val]) => {
+                  const isReadonly =
+                    isEditMode &&
+                    ["product_id", "created_at", "category_id"].includes(key);
 
-  return (
-    <div key={key}>
-      <Label htmlFor={key}>
-  {{
-    product_featured: "Top Offers",
-    product_visibility: "Best Sellers",
-    category_id: "Category ID",
-    category_name: "Category Name",
-    created_at: "Created At",
-    description: "Description",
-    image_url: "Image URL",
-    name: "Name",
-    price: "Price",
-    product_id: "Product ID",
-    product_published: "Published",
-    product_short_description: "Short Description",
-    product_stock_available: "Stock Available",
-    product_tax: "Tax",
-    sale_price: "Sale Price",
-    stock_quantity: "Stock Quantity",
-    weight: "Weight",
-  }[key as keyof Product] || key.replace(/_/g, " ")}
-</Label>
+                  return (
+                    <div key={key}>
+                      <Label htmlFor={key}>
+                        {{
+                          product_featured: "Top Offers",
+                          product_visibility: "Best Sellers",
+                          category_id: "Category ID",
+                          category_name: "Category Name",
+                          created_at: "Created At",
+                          description: "Description",
+                          image_url: "Image URL",
+                          name: "Name",
+                          price: "Price",
+                          product_id: "Product ID",
+                          product_published: "Published",
+                          product_short_description: "Short Description",
+                          product_stock_available: "Stock Available",
+                          product_tax: "Tax",
+                          sale_price: "Sale Price",
+                          stock_quantity: "Stock Quantity",
+                          weight: "Weight",
+                        }[key as keyof Product] ||
+                          key.replace(/_/g, " ")}
+                      </Label>
 
-      {key === "image_url" ? (
-        <div className="space-y-2">
-          <Input
-            id="image_url"
-            value={modalProduct.image_url}
-            placeholder="Enter image URL or upload"
-            onChange={(e) => handleModalChange("image_url", e.target.value)}
-            disabled={isReadonly}
-          />
-          {!isReadonly && (
-            <Input
-              id="file"
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
+                      {key === "image_url" ? (
+                        <div className="space-y-2">
+                          <Input
+                            id="image_url"
+                            value={modalProduct.image_url}
+                            placeholder="Enter image URL or upload"
+                            onChange={(e) =>
+                              handleModalChange("image_url", e.target.value)
+                            }
+                            disabled={isReadonly}
+                          />
+                          {!isReadonly && (
+                            <Input
+                              id="file"
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
 
-                const formData = new FormData();
-                formData.append("file", file);
-                try {
-                  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
-                    method: "POST",
-                    body: formData,
-                  });
-                  const data = await res.json();
-                  if (data.secure_url) {
-                    handleModalChange("image_url", data.secure_url);
-                    toast.success("Image uploaded");
-                  } else {
-                    toast.error("Upload failed");
-                  }
-                } catch (err) {
-                  toast.error("Upload error");
-                  console.error(err);
-                }
-              }}
-            />
-          )}
-        </div>
-      ) : ["product_published", "product_featured", "product_visibility", "product_stock_available"].includes(key) ? (
-  <select
-    id={key}
-    value={val === true || val === "true" ? "Yes" : "No"}
-    onChange={(e) =>
-      handleModalChange(key as keyof Product, e.target.value === "Yes")
-    }
-    disabled={isReadonly}
-    className="w-full border px-2 py-1 rounded"
-  >
-    <option value="Yes">Yes</option>
-    <option value="No">No</option>
-  </select>
-
-      ) : ["price", "sale_price", "stock_quantity"].includes(key) ? (
-        <Input
-          id={key}
-          type="number"
-          value={val ?? ""}
-          min={0}
-          onChange={(e) =>
-            handleModalChange(
-              key as keyof Product,
-              key === "stock_quantity"
-                ? parseInt(e.target.value)
-                : parseFloat(e.target.value)
-            )
-          }
-          disabled={isReadonly}
-        />
-      ) : isEditMode && ["product_id", "created_at", "category_name"].includes(key) ? (
-  <Input id={key} value={val ?? ""} disabled />
-) : (
-  <Input
-    id={key}
-    value={val ?? ""}
-    onChange={(e) =>
-      handleModalChange(key as keyof Product, e.target.value)
-    }
-  />
-)
-}
-    </div>
-  );
-})}
+                                const formData = new FormData();
+                                formData.append("file", file);
+                                try {
+                                  const res = await fetch(
+                                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`,
+                                    {
+                                      method: "POST",
+                                      body: formData,
+                                    }
+                                  );
+                                  const data = await res.json();
+                                  if (data.secure_url) {
+                                    handleModalChange(
+                                      "image_url",
+                                      data.secure_url
+                                    );
+                                    toast.success("Image uploaded");
+                                  } else {
+                                    toast.error("Upload failed");
+                                  }
+                                } catch (err) {
+                                  toast.error("Upload error");
+                                  console.error(err);
+                                }
+                              }}
+                            />
+                          )}
+                        </div>
+                      ) : ["product_published", "product_featured", "product_visibility", "product_stock_available"].includes(key) ? (
+                        <select
+                          id={key}
+                          value={
+                            val === true || val === "true" ? "Yes" : "No"
+                          }
+                          onChange={(e) =>
+                            handleModalChange(
+                              key as keyof Product,
+                              e.target.value === "Yes"
+                            )
+                          }
+                          disabled={isReadonly}
+                          className="w-full border px-2 py-1 rounded"
+                        >
+                          <option value="Yes">Yes</option>
+                          <option value="No">No</option>
+                        </select>
+                      ) : ["price", "sale_price", "stock_quantity", "product_tax"].includes(key) ? ( // <-- include product_tax
+                        <Input
+                          id={key}
+                          type="number"
+                          value={val ?? ""}
+                          min={0}
+                          onChange={(e) =>
+                            handleModalChange(
+                              key as keyof Product,
+                              key === "stock_quantity"
+                                ? parseInt(e.target.value)
+                                : parseFloat(e.target.value)
+                            )
+                          }
+                          disabled={isReadonly}
+                        />
+                      ) : isEditMode &&
+                        ["product_id", "created_at", "category_name"].includes(
+                          key
+                        ) ? (
+                        <Input id={key} value={val ?? ""} disabled />
+                      ) : (
+                        <Input
+                          id={key}
+                          value={val ?? ""}
+                          onChange={(e) =>
+                            handleModalChange(
+                              key as keyof Product,
+                              e.target.value
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <DialogFooter>
                 <Button onClick={handleModalSubmit}>
