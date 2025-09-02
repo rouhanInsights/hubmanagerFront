@@ -29,6 +29,8 @@ function getPageTitle(pathname: string) {
     "/deliveryagent": "Delivery Agents",
     "/assign": "Assigned Orders",
     "/payments": "Payment Records",
+    "/analytics": "Analytical Report",
+    "/analytics/print": "Printable MIS Report",
     "/stock": "Stock Management",
     "/hubmanager": "Hub Manager Panel",
     "/admin": "Admin Dashboard",

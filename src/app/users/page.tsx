@@ -26,10 +26,12 @@ interface Customer {
   name: string;
   email: string;
   phone: string;
+  created_at: string;
   address_orders: {
     [address: string]: Order[];
   };
 }
+
 
 export default function CustomerPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -102,10 +104,21 @@ export default function CustomerPage() {
                 <CollapsibleTrigger asChild>
                   <button className="w-full flex justify-between items-center p-4 hover:bg-gray-100 transition-all group">
                     <div className="text-left space-y-1">
-                      <p className="text-lg font-semibold text-black">{cust.name}</p>
-                      <p className="text-sm text-gray-600">📧 {cust.email}</p>
-                      <p className="text-sm text-gray-600">📞 {cust.phone}</p>
-                    </div>
+  <p className="text-lg font-semibold text-black">
+    <span className="font-bold">User Name: </span> {cust.name}
+  </p>
+  <p className="text-sm text-gray-600">
+    <span className="font-bold">Email: </span> {cust.email}
+  </p>
+  <p className="text-sm text-gray-600">
+    <span className="font-bold">Phone no: </span> {cust.phone}
+  </p>
+  <p className="text-sm text-gray-600">
+    <span className="font-bold">Account Created: </span>{" "}
+    {new Date(cust.created_at).toLocaleDateString()}
+  </p>
+</div>
+
                     <ChevronDown className="text-gray-500 transition-transform duration-300 group-data-[state=open]:rotate-180" />
                   </button>
                 </CollapsibleTrigger>
@@ -113,7 +126,7 @@ export default function CustomerPage() {
                 <CollapsibleContent className="p-4 pt-0 space-y-4">
                   {Object.entries(cust.address_orders).map(([address, orders]) => (
                     <div key={address}>
-                      <p className="text-sm font-semibold text-blue-600 mb-1">🏠 {address}</p>
+                      <p className="text-sm font-semibold text-blue-600 mb-1">Address:  {address}</p>
                       <table className="w-full text-sm table-auto border border-gray-200 rounded">
                         <thead className="bg-gray-50">
                           <tr>

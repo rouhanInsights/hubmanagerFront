@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   LayoutDashboard,
+  ChartAreaIcon,
   Boxes,
   Stars,
   Tags,
@@ -16,7 +17,6 @@ import {
   ShieldCheck,
   UserCog,
   Warehouse,
-  Command,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -30,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Image from "next/image";
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = React.useState({
@@ -87,6 +88,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       icon: Warehouse,
       isActive: true,
       items: [
+        { title: "Analytics", url: "/analytics", icon: ChartAreaIcon },
         { title: "Stock Management", url: "/stock", icon: PackageCheck },
       ],
     },
@@ -116,13 +118,19 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-6" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-muted-foreground">{user.email}</span>
+              <a href="/" className="flex items-center gap-2">
+                <Image
+                  src="/cff.png"
+                  alt="Calcutta Fresh Foods"
+                  width={300}
+                  height={80}
+                  className="rounded"
+                  priority
+                />
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-semibold text-sidebar-foreground leading-tight">
+                    
+                  </span>
                 </div>
               </a>
             </SidebarMenuButton>
