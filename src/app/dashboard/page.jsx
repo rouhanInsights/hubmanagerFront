@@ -24,6 +24,7 @@ import {
 
 export default function Page() {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // control render
 
