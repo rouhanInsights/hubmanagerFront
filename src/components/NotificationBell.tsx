@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { io, Socket } from "socket.io-client";
 
 type Notification = {
   order_id: number;
@@ -22,36 +23,39 @@ export function NotificationBell() {
   const [readOrderIds, setReadOrderIds] = useState<Set<number>>(new Set());
   const [cleared, setCleared] = useState(false);
 
-  const prevFirstId = useRef<number | null>(null);
-  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const interactionAllowed = useRef<boolean>(false);
   const clearedOrderIdsRef = useRef<Set<number>>(new Set());
 
-  // Load cleared order IDs from localStorage on mount
+  // ✅ Build WebSocket URL dynamically based on environment
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5001";
+  const SOCKET_URL = base.replace(/^http/, typeof window !== "undefined" && window.location.protocol === "https:" ? "wss" : "ws");
+
+  // ✅ Load cleared notifications from localStorage
   useEffect(() => {
     const saved = localStorage.getItem(CLEARED_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as number[];
         clearedOrderIdsRef.current = new Set(parsed);
-      } catch (err) {
+      } catch {
         console.error("⚠️ Failed to parse cleared IDs from storage");
       }
     }
   }, []);
 
-  // Setup audio
+  // ✅ Setup audio playback on click
   useEffect(() => {
     audioRef.current = new Audio("/notification.wav");
 
     const allowAudioPlayback = () => {
+      console.log("🖱️ User clicked, audio unlocked.");
       interactionAllowed.current = true;
       document.removeEventListener("click", allowAudioPlayback);
     };
 
     document.addEventListener("click", allowAudioPlayback);
-
     return () => {
       document.removeEventListener("click", allowAudioPlayback);
     };
@@ -65,45 +69,36 @@ export function NotificationBell() {
     }
   };
 
-  // Poll notifications
+  // ✅ Setup WebSocket connection
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/notifications`
-        );
-        const data = await res.json();
-        const notifs: Notification[] = data.notifications || [];
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
 
-        // filter out cleared notifications
-        const filtered = notifs.filter(
-          (n) => !clearedOrderIdsRef.current.has(n.order_id)
-        );
+    socketRef.current = socket;
 
-        if (!cleared) {
-          setNotifications(filtered);
+    socket.on("connect", () => {
+      console.log("🔌 Connected to WebSocket");
+    });
 
-          const latestId = filtered[0]?.order_id;
-          if (prevFirstId.current && latestId !== prevFirstId.current) {
-            toast.success(`🛒 New order received: #${latestId}`);
-            playNotificationSound();
-            setHasUnseen(true);
-          }
+    socket.on("new_notification", (notif: Notification) => {
+      if (clearedOrderIdsRef.current.has(notif.order_id)) return;
 
-          if (filtered.length > 0) {
-            prevFirstId.current = filtered[0].order_id;
-          }
-        }
-      } catch (err) {
-        console.error("❌ Notification fetch failed:", err);
-      }
-    };
+      toast.success(`🛒 New order received: #${notif.order_id}`);
+      playNotificationSound();
+      setNotifications((prev) => [notif, ...prev]);
+      setHasUnseen(true);
+    });
 
-    pollingInterval.current = setInterval(fetchNotifications, 2000);
+    socket.on("disconnect", () => {
+      console.warn("❌ Disconnected from WebSocket");
+    });
+
     return () => {
-      if (pollingInterval.current) clearInterval(pollingInterval.current);
+      socket.disconnect();
     };
-  }, [cleared]);
+  }, []);
 
   const handleOpenModal = () => {
     setShowModal(true);

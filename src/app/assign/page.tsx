@@ -6,10 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSearchParams } from "next/navigation";
-import {
-  SidebarProvider,
-  SidebarInset,
-} from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 interface DAUser {
   user_id: number;
@@ -30,7 +27,7 @@ interface AssignedOrder {
   agent_name: string;
   full_address: string;
   slot_details: string;
-  order_status: string;
+  order_status: string; // 'assigned' | 'delivered' | 'rejected'
   remarks?: string;
   delivered_at?: string | null;
 }
@@ -67,9 +64,10 @@ function AssignOrderInner() {
     queryFn: async () => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da-orders/assignable`);
       if (!res.ok) throw new Error("Failed to fetch assignable orders");
-      return res.json().then((data) => data.orders);
+      const payload = await res.json();
+      return payload.orders as AssignableOrder[];
     },
-    refetchInterval: 500,
+    refetchInterval: 1000,
   });
 
   const { data: assignedOrders = [] } = useQuery<AssignedOrder[]>({
@@ -77,11 +75,13 @@ function AssignOrderInner() {
     queryFn: async () => {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/da-orders/assigned`);
       if (!res.ok) throw new Error("Failed to fetch assigned orders");
-      return res.json().then((data) => data.orders);
+      const payload = await res.json();
+      return payload.orders as AssignedOrder[];
     },
     refetchInterval: 2000,
   });
 
+  // Safety: if a highlight id comes from URL, pre-select it
   useEffect(() => {
     if (highlightId) {
       const id = Number(highlightId);
@@ -91,16 +91,16 @@ function AssignOrderInner() {
     }
   }, [highlightId, selectedOrders]);
 
+  // Highlight scroll/flash
   useEffect(() => {
     if (highlightRef.current) {
       const el = highlightRef.current;
       el.scrollIntoView({ behavior: "smooth", block: "center" });
-
       el.classList.add("ring-2", "ring-blue-200", "bg-blue-100", "animate-pulse");
-
-      setTimeout(() => {
+      const t = setTimeout(() => {
         el.classList.remove("animate-pulse", "ring-2", "ring-blue-200", "bg-blue-100");
       }, 2000);
+      return () => clearTimeout(t);
     }
   }, [highlightId]);
 
@@ -117,26 +117,33 @@ function AssignOrderInner() {
         body: JSON.stringify({ da_id: selectedAgent, order_ids: selectedOrders }),
       });
 
-      if (res.ok) {
-        toast.success("Orders assigned successfully");
-        refetchAssignable();
-        setSelectedOrders([]);
-      } else {
-        throw new Error("Failed");
-      }
+      if (!res.ok) throw new Error("Failed");
+
+      toast.success("Orders assigned successfully");
+      refetchAssignable();
+      setSelectedOrders([]);
     } catch {
       toast.error("Error assigning orders");
     }
   };
 
+  // --- FIX: never show delivered/assigned/rejected or already-present-in-assigned in the selectable list ---
+  const assignedIds = new Set(assignedOrders.map((a) => a.order_id));
+  const hiddenStatuses = new Set(["delivered", "assigned", "rejected"]);
+
+  const selectableOrders = assignableOrders.filter((o) => {
+    const status = (o.order_status || "").toLowerCase();
+    return !hiddenStatuses.has(status) && !assignedIds.has(o.order_id);
+  });
+
   const filteredAssigned = assignedOrders.filter((entry) => {
+    const s = searchTerm.toLowerCase();
     const matchSearch =
-      entry.agent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.full_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.slot_details.toLowerCase().includes(searchTerm.toLowerCase());
+      entry.agent_name.toLowerCase().includes(s) ||
+      entry.full_address.toLowerCase().includes(s) ||
+      entry.slot_details.toLowerCase().includes(s);
 
     const matchStatus = statusFilter === "all" || entry.order_status === statusFilter;
-
     return matchSearch && matchStatus;
   });
 
@@ -149,7 +156,9 @@ function AssignOrderInner() {
           value={selectedAgent ?? ""}
           onChange={(e) => setSelectedAgent(Number(e.target.value))}
         >
-          <option value="" disabled>Select agent</option>
+          <option value="" disabled>
+            Select agent
+          </option>
           {agents.map((agent) => (
             <option key={agent.user_id} value={agent.user_id}>
               {agent.name}
@@ -161,7 +170,10 @@ function AssignOrderInner() {
       <div className="mb-4">
         <label className="block mb-2 font-medium">Select Orders</label>
         <div className="border rounded p-2 max-h-60 overflow-y-auto">
-          {assignableOrders.map((order) => {
+          {selectableOrders.length === 0 && (
+            <div className="text-sm text-muted-foreground px-1 py-1">No orders available to assign.</div>
+          )}
+          {selectableOrders.map((order) => {
             const isHighlighted = highlightId && String(order.order_id) === highlightId;
             return (
               <div
@@ -178,9 +190,7 @@ function AssignOrderInner() {
                   onChange={(e) => {
                     const orderId = Number(e.target.value);
                     setSelectedOrders((prev) =>
-                      prev.includes(orderId)
-                        ? prev.filter((id) => id !== orderId)
-                        : [...prev, orderId]
+                      prev.includes(orderId) ? prev.filter((id) => id !== orderId) : [...prev, orderId]
                     );
                   }}
                 />
@@ -213,6 +223,7 @@ function AssignOrderInner() {
             <option value="all">All</option>
             <option value="assigned">Assigned</option>
             <option value="rejected">Rejected</option>
+            <option value="delivered">Delivered</option>
           </select>
         </div>
 
@@ -239,9 +250,7 @@ function AssignOrderInner() {
                   <td className="p-2 capitalize">{entry.order_status}</td>
                   <td className="p-2">{entry.remarks || "-"}</td>
                   <td className="p-2">
-                    {hasMounted && entry.delivered_at
-                      ? new Date(entry.delivered_at).toLocaleString()
-                      : "-"}
+                    {hasMounted && entry.delivered_at ? new Date(entry.delivered_at).toLocaleString() : "-"}
                   </td>
                 </tr>
               ))}
