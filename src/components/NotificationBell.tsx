@@ -70,35 +70,37 @@ export function NotificationBell() {
   };
 
   // ✅ Setup WebSocket connection
-  useEffect(() => {
-    const socket = io(SOCKET_URL, {
-      transports: ["websocket"],
-      withCredentials: true,
-    });
+useEffect(() => {
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5001";
+  const socket = io(base, {
+    transports: ["websocket"], // WebSocket transport only
+    withCredentials: true,
+  });
 
-    socketRef.current = socket;
+  socketRef.current = socket;
 
-    socket.on("connect", () => {
-      console.log("🔌 Connected to WebSocket");
-    });
+  socket.on("connect", () => {
+    console.log("🔌 Connected to WebSocket");
+  });
 
-    socket.on("new_notification", (notif: Notification) => {
-      if (clearedOrderIdsRef.current.has(notif.order_id)) return;
+  socket.on("new_notification", (notif: Notification) => {
+    if (clearedOrderIdsRef.current.has(notif.order_id)) return;
 
-      toast.success(`🛒 New order received: #${notif.order_id}`);
-      playNotificationSound();
-      setNotifications((prev) => [notif, ...prev]);
-      setHasUnseen(true);
-    });
+    toast.success(`🛒 New order received: #${notif.order_id}`);
+    playNotificationSound();
+    setNotifications((prev) => [notif, ...prev]);
+    setHasUnseen(true);
+  });
 
-    socket.on("disconnect", () => {
-      console.warn("❌ Disconnected from WebSocket");
-    });
+  socket.on("disconnect", () => {
+    console.warn("❌ Disconnected from WebSocket");
+  });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+  return () => {
+    socket.disconnect();
+  };
+}, []);
+
 
   const handleOpenModal = () => {
     setShowModal(true);
