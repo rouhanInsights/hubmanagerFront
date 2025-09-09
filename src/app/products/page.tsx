@@ -16,30 +16,41 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
+/** Allow numeric fields to be number | "" while typing to avoid NaN in React value */
 interface Product {
   product_id?: number;
   name: string;
   category_id: string;
   category_name?: string; // for display
-  created_at?: string;    // for display
-  price: number;
-  sale_price: number;
-  stock_quantity: number;
-  product_stock_available: string;
+  created_at?: string; // for display
+  price: number | "";
+  sale_price: number | "";
+  stock_quantity: number | "";
+  product_stock_available: boolean; // keep as string unless you want boolean
   product_published: boolean;
   product_featured: boolean;
   product_visibility: boolean;
-  product_tax: number;           // <-- number now
+  product_tax: number | "";
   weight: string;
   product_short_description: string;
   description: string;
   image_url: string;
 }
+
+/** Helper: parse number input, return "" if empty/invalid during typing */
+const parseNumberInput = (raw: string, integer = false): number | "" => {
+  if (raw === "" || raw === undefined || raw === null) return "";
+  const n = integer ? parseInt(raw, 10) : parseFloat(raw);
+  return Number.isNaN(n) ? "" : n;
+};
+
+/** Helper: format currency-like numbers safely in the table */
+const safeMoney = (v: unknown): string => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toFixed(2) : "0.00";
+};
 
 export default function ProductListPage() {
   const router = useRouter();
@@ -48,17 +59,18 @@ export default function ProductListPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+
   const [modalProduct, setModalProduct] = useState<Product>({
     name: "",
     category_id: "",
     price: 0,
     sale_price: 0,
     stock_quantity: 0,
-    product_stock_available: "",
+    product_stock_available: true,
     product_published: true,
     product_featured: false,
     product_visibility: true,
-    product_tax: 0,              // <-- initial 0
+    product_tax: 0,
     weight: "",
     product_short_description: "",
     description: "",
@@ -114,11 +126,11 @@ export default function ProductListPage() {
       price: 0,
       sale_price: 0,
       stock_quantity: 0,
-      product_stock_available: "",
+      product_stock_available: true,
       product_published: true,
       product_featured: false,
       product_visibility: true,
-      product_tax: 0,           // <-- initial 0
+      product_tax: 0,
       weight: "",
       product_short_description: "",
       description: "",
@@ -131,7 +143,13 @@ export default function ProductListPage() {
   const openEditModal = (product: Product) => {
     setModalProduct({
       ...product,
-      product_tax: Number(product.product_tax ?? 0), // ensure number in edit
+      // ensure numeric fields are numbers (not undefined/null) when loading the form
+      price: product.price === "" ? 0 : Number(product.price ?? 0),
+      sale_price: product.sale_price === "" ? 0 : Number(product.sale_price ?? 0),
+      stock_quantity:
+        product.stock_quantity === "" ? 0 : Number(product.stock_quantity ?? 0),
+      product_tax:
+        product.product_tax === "" ? 0 : Number(product.product_tax ?? 0),
     });
     setIsEditMode(true);
     setModalOpen(true);
@@ -141,16 +159,30 @@ export default function ProductListPage() {
     field: keyof Product,
     value: string | number | boolean
   ) => {
-    setModalProduct((prev) => ({ ...prev, [field]: value }));
+    setModalProduct((prev) => ({ ...prev, [field]: value as any }));
   };
 
   const handleModalSubmit = async () => {
-    const { price, sale_price, stock_quantity, product_tax } = modalProduct;
+    // Normalize numeric fields to numbers for API payload
+    const priceN = Number(modalProduct.price || 0);
+    const salePriceN = Number(modalProduct.sale_price || 0);
+    const stockQtyN = Number(modalProduct.stock_quantity || 0);
+    const taxN = Number(modalProduct.product_tax || 0);
 
-    if (price < 0 || sale_price < 0 || stock_quantity < 0 || product_tax < 0) {
-      toast.error("Price, Sale Price, Stock Quantity, and Tax must be 0 or more");
+    if (priceN < 0 || salePriceN < 0 || stockQtyN < 0 || taxN < 0) {
+      toast.error(
+        "Price, Sale Price, Stock Quantity, and Tax must be 0 or more"
+      );
       return;
     }
+
+    const payload = {
+      ...modalProduct,
+      price: priceN,
+      sale_price: salePriceN,
+      stock_quantity: stockQtyN,
+      product_tax: taxN,
+    };
 
     const url = isEditMode
       ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${modalProduct.product_id}`
@@ -161,7 +193,7 @@ export default function ProductListPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(modalProduct),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         toast.success(isEditMode ? "Product updated" : "Product added");
@@ -179,14 +211,11 @@ export default function ProductListPage() {
   };
 
   const handleDelete = async (id?: number) => {
-    if (!id || !confirm("Are you sure you want to delete this product?"))
-      return;
+    if (!id || !confirm("Are you sure you want to delete this product?")) return;
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/${id}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
       );
       if (res.ok) {
         toast.success("Deleted");
@@ -220,10 +249,7 @@ export default function ProductListPage() {
               className="w-full sm:w-1/2"
             />
 
-            <Button
-              onClick={openAddModal}
-              className="w-full sm:w-auto"
-            >
+            <Button onClick={openAddModal} className="w-full sm:w-auto">
               <PlusCircle className="w-4 h-4 mr-2" />
               Add Product
             </Button>
@@ -267,12 +293,16 @@ export default function ProductListPage() {
                     </td>
                     <td className="p-2">{product.name}</td>
                     <td className="p-2">{product.category_id}</td>
-                    <td className="p-2">₹{Number(product.price).toFixed(2)}</td>
+                    <td className="p-2">₹{safeMoney(product.price)}</td>
+                    <td className="p-2">₹{safeMoney(product.sale_price)}</td>
                     <td className="p-2">
-                      ₹{Number(product.sale_price || 0).toFixed(2)}
+                      {Number.isFinite(Number(product.stock_quantity))
+                        ? Number(product.stock_quantity).toString()
+                        : "0"}
                     </td>
-                    <td className="p-2">{product.stock_quantity}</td>
-                    <td className="p-2">{product.product_stock_available}</td>
+                    <td className="p-2">
+                      {product.product_stock_available ? "Yes" : "No"}
+                    </td>
                     <td className="p-2">
                       {product.product_published ? "Yes" : "No"}
                     </td>
@@ -282,11 +312,13 @@ export default function ProductListPage() {
                     <td className="p-2">
                       {product.product_visibility ? "Yes" : "No"}
                     </td>
-                    <td className="p-2">{Number(product.product_tax).toFixed(2)}</td>
+                    <td className="p-2">₹{safeMoney(product.product_tax)}</td>
                     <td className="p-2">{product.weight}</td>
-                    <td className="p-2">{product.product_short_description}</td>
-                    <td className="p-2">{product.description}</td>
                     <td className="p-2">
+                      {product.product_short_description}
+                    </td>
+                    <td className="p-2">{product.description}</td>
+                    <td className="p-2 space-x-2">
                       <Button size="sm" onClick={() => openEditModal(product)}>
                         Edit
                       </Button>
@@ -311,6 +343,7 @@ export default function ProductListPage() {
                   {isEditMode ? "Edit Product" : "Add Product"}
                 </DialogTitle>
               </DialogHeader>
+
               <div className="grid grid-cols-2 gap-4">
                 {Object.entries(modalProduct).map(([key, val]) => {
                   const isReadonly =
@@ -338,8 +371,7 @@ export default function ProductListPage() {
                           sale_price: "Sale Price",
                           stock_quantity: "Stock Quantity",
                           weight: "Weight",
-                        }[key as keyof Product] ||
-                          key.replace(/_/g, " ")}
+                        }[key as keyof Product] || key.replace(/_/g, " ")}
                       </Label>
 
                       {key === "image_url" ? (
@@ -373,14 +405,17 @@ export default function ProductListPage() {
                                     }
                                   );
                                   const data = await res.json();
-                                  if (data.secure_url) {
-                                    handleModalChange(
-                                      "image_url",
-                                      data.secure_url
-                                    );
+                                  const url =
+                                    data.secure_url ||
+                                    data.url ||
+                                    data.Location;
+                                  if (url) {
+                                    handleModalChange("image_url", url);
                                     toast.success("Image uploaded");
                                   } else {
-                                    toast.error("Upload failed");
+                                    toast.error(
+                                      data?.error || "Upload failed"
+                                    );
                                   }
                                 } catch (err) {
                                   toast.error("Upload error");
@@ -390,12 +425,12 @@ export default function ProductListPage() {
                             />
                           )}
                         </div>
-                      ) : ["product_published", "product_featured", "product_visibility", "product_stock_available"].includes(key) ? (
+                      ) : ["product_published", "product_featured", "product_visibility", "product_stock_available"].includes(
+                          key
+                        ) ? (
                         <select
                           id={key}
-                          value={
-                            val === true || val === "true" ? "Yes" : "No"
-                          }
+                          value={val ? "Yes" : "No"}
                           onChange={(e) =>
                             handleModalChange(
                               key as keyof Product,
@@ -408,18 +443,20 @@ export default function ProductListPage() {
                           <option value="Yes">Yes</option>
                           <option value="No">No</option>
                         </select>
-                      ) : ["price", "sale_price", "stock_quantity", "product_tax"].includes(key) ? ( // <-- include product_tax
+                      ) : ["price", "sale_price", "stock_quantity", "product_tax"].includes(
+                          key
+                        ) ? (
                         <Input
                           id={key}
                           type="number"
-                          value={val ?? ""}
+                          value={val === "" ? "" : String(val)} // never pass NaN
                           min={0}
                           onChange={(e) =>
                             handleModalChange(
                               key as keyof Product,
                               key === "stock_quantity"
-                                ? parseInt(e.target.value)
-                                : parseFloat(e.target.value)
+                                ? parseNumberInput(e.target.value, true) // int
+                                : parseNumberInput(e.target.value, false) // float
                             )
                           }
                           disabled={isReadonly}
@@ -439,12 +476,14 @@ export default function ProductListPage() {
                               e.target.value
                             )
                           }
+                          disabled={isReadonly}
                         />
                       )}
                     </div>
                   );
                 })}
               </div>
+
               <DialogFooter>
                 <Button onClick={handleModalSubmit}>
                   {isEditMode ? "Update Product" : "Add Product"}
