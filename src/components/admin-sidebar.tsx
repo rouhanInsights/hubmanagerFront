@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import * as React from "react";
 import {
   LayoutDashboard,
@@ -118,22 +118,22 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/" className="flex items-center gap-2">
-                <Image
-                  src="/cff.png"
-                  alt="Calcutta Fresh Foods"
-                  width={300}
-                  height={80}
-                  className="rounded"
-                  priority
-                />
-                <div className="flex flex-col text-left">
-                  <span className="text-sm font-semibold text-sidebar-foreground leading-tight">
-                    
-                  </span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+  <Link href="/" className="flex items-center gap-2">
+    <Image
+      src="/cff.png"
+      alt="Calcutta Fresh Foods"
+      width={300}
+      height={80}
+      className="rounded"
+      priority
+    />
+    <div className="flex flex-col text-left">
+      <span className="text-sm font-semibold text-sidebar-foreground leading-tight">
+        {/* Logo Text (optional) */}
+      </span>
+    </div>
+  </Link>
+</SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

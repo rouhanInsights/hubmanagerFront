@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,10 @@ const DynamicBar = dynamic(() => Promise.resolve(Bar), { ssr: false });
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+type Mode = "custom" | "monthly" | "quarterly" | "yearly";
+const isMode = (v: string): v is Mode =>
+  v === "custom" || v === "monthly" || v === "quarterly" || v === "yearly";
+
 type ReportData = {
   period: { start_date: string; end_date: string; mode: string };
   total_orders: number;
@@ -60,10 +64,10 @@ function formatDate(date: Date) {
   return date.toISOString().split("T")[0];
 }
 
-function getDateRange(mode: string): [string, string] {
+function getDateRange(mode: Mode): [string, string] {
   const today = new Date();
   const end = formatDate(today);
-  let start = new Date(today);
+  const start = new Date(today); // ← prefer-const fixed
 
   if (mode === "monthly") {
     start.setMonth(today.getMonth() - 1);
@@ -79,7 +83,7 @@ function getDateRange(mode: string): [string, string] {
 export default function AnalyticsPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [mode, setMode] = useState<"custom" | "monthly" | "quarterly" | "yearly">("custom");
+  const [mode, setMode] = useState<Mode>("custom");
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasMounted, setHasMounted] = useState<boolean>(false);
@@ -99,7 +103,7 @@ export default function AnalyticsPage() {
     }
   }, [mode, hasMounted]);
 
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     if (!startDate || !endDate) return;
     setLoading(true);
     try {
@@ -108,7 +112,9 @@ export default function AnalyticsPage() {
         end_date: endDate,
         mode,
       });
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/misreport?${qs.toString()}`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/misreport?${qs.toString()}`
+      );
       if (!res.ok) {
         const text = await res.text();
         console.error("Fetch report failed:", text);
@@ -121,13 +127,13 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [startDate, endDate, mode]); // ← added for exhaustive-deps
 
   useEffect(() => {
     if (hasMounted) {
       fetchReport();
     }
-  }, [startDate, endDate, mode, hasMounted]);
+  }, [fetchReport, hasMounted]); // ← effect depends on the memoized function
 
   if (!hasMounted) return null;
 
@@ -136,15 +142,30 @@ export default function AnalyticsPage() {
       <section className="flex flex-wrap items-end gap-4">
         <div>
           <label className="block text-sm font-medium">From</label>
-          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={mode !== "custom"} />
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            disabled={mode !== "custom"}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium">To</label>
-          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} disabled={mode !== "custom"} />
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            disabled={mode !== "custom"}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium">Mode</label>
-          <Select onValueChange={(v) => setMode(v as any)} value={mode}>
+          <Select
+            onValueChange={(v) => {
+              if (isMode(v)) setMode(v); // ← removes 'any'
+            }}
+            value={mode}
+          >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Custom" />
             </SelectTrigger>
@@ -205,147 +226,144 @@ export default function AnalyticsPage() {
 
           <Separator />
 
-{/* Category Sales + Top Products Side by Side */}
-<section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-  {/* Sales by Category */}
-  <Card className="h-full">
-    <CardHeader>
-      <CardTitle>Sales by Category</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <DynamicBar
-        data={{
-          labels: report.category_sales.map((c) => c.category_name),
-          datasets: [
-            {
-              label: "Orders",
-              data: report.category_sales.map((c) => c.order_count),
-              backgroundColor: "rgba(59, 130, 246, 0.5)",
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          plugins: { legend: { display: false } },
-        }}
-      />
-    </CardContent>
-  </Card>
+          {/* Category Sales + Top Products Side by Side */}
+          <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Sales by Category */}
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Sales by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DynamicBar
+                  data={{
+                    labels: report.category_sales.map((c) => c.category_name),
+                    datasets: [
+                      {
+                        label: "Orders",
+                        data: report.category_sales.map((c) => c.order_count),
+                        backgroundColor: "rgba(59, 130, 246, 0.5)",
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                  }}
+                />
+              </CardContent>
+            </Card>
 
-  {/* Top 10 Products */}
-  {/* Top 10 Products */}
-<Card className="h-full">
-  <CardHeader>
-    <CardTitle>Top 10 Products</CardTitle>
-  </CardHeader>
-  <CardContent className="p-0">
-    <ScrollArea className="h-64 px-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead className="text-right">Units Sold</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {report.top_products.slice(0, 10).map((p, index) => (
-            <TableRow key={p.name}>
-              <TableCell className="font-medium">
-                {index + 1}. {p.name}
-              </TableCell>
-              <TableCell className="text-right">
-                {p.sold_count.toLocaleString()}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </ScrollArea>
-  </CardContent>
-</Card>
+            {/* Top 10 Products */}
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Top 10 Products</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ScrollArea className="h-64 px-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead className="text-right">Units Sold</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {report.top_products.slice(0, 10).map((p, index) => (
+                        <TableRow key={p.name}>
+                          <TableCell className="font-medium">
+                            {index + 1}. {p.name}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {p.sold_count.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </section>
 
+          <Separator className="my-4" />
 
-</section>
-
-
-          <Separator className="my-4"/>
-
-          {/* Feedback & Account Trends */}
           {/* Feedback + Delivery on left, Account Trends on right */}
-<section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div className="space-y-4">
-    {/* Feedback Summary */}
-    <Card>
-      <CardHeader>
-        <CardTitle>Feedback Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>
-          Avg. Product Rating:{" "}
-          <strong>
-            {Number(report.feedback_summary?.avg_product_rating ?? 0).toFixed(2)}
-          </strong>{" "}
-          ⭐
-        </p>
-        <p>
-          Avg. DA Rating:{" "}
-          <strong>
-            {Number(report.feedback_summary?.avg_da_rating ?? 0).toFixed(2)}
-          </strong>{" "}
-          ⭐
-        </p>
-      </CardContent>
-    </Card>
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              {/* Feedback Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Feedback Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>
+                    Avg. Product Rating:{" "}
+                    <strong>
+                      {Number(
+                        report.feedback_summary?.avg_product_rating ?? 0
+                      ).toFixed(2)}
+                    </strong>{" "}
+                    ⭐
+                  </p>
+                  <p>
+                    Avg. DA Rating:{" "}
+                    <strong>
+                      {Number(
+                        report.feedback_summary?.avg_da_rating ?? 0
+                      ).toFixed(2)}
+                    </strong>{" "}
+                    ⭐
+                  </p>
+                </CardContent>
+              </Card>
 
-    {/* Delivery Success Rate */}
-    <Card>
-      <CardHeader>
-        <CardTitle>Delivery Success Rate</CardTitle>
-      </CardHeader>
-      <CardContent className="text-2xl font-bold">
-        {report.delivery_success_rate.toFixed(2)}%
-      </CardContent>
-    </Card>
-  </div>
+              {/* Delivery Success Rate */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Delivery Success Rate</CardTitle>
+                </CardHeader>
+                <CardContent className="text-2xl font-bold">
+                  {report.delivery_success_rate.toFixed(2)}%
+                </CardContent>
+              </Card>
+            </div>
 
-  {/* Account Creation Trends */}
-<Card className="h-64">
-  <CardHeader>
-    <CardTitle>Account Creations</CardTitle>
-  </CardHeader>
-  <CardContent className="h-44">
-    <DynamicBar
-      data={{
-        labels: report.account_creation_trends.map((t) => t.date),
-        datasets: [
-          {
-            label: "New Accounts",
-            data: report.account_creation_trends.map((t) => t.count),
-            backgroundColor: "rgba(16, 185, 129, 0.5)",
-          },
-        ],
-      }}
-      options={{
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 10,
-              callback: function (value) {
-                return Number.isInteger(value) ? value : "";
-              },
-            },
-          },
-        },
-      }}
-    />
-  </CardContent>
-</Card>
-
-</section>
-
+            {/* Account Creation Trends */}
+            <Card className="h-64">
+              <CardHeader>
+                <CardTitle>Account Creations</CardTitle>
+              </CardHeader>
+              <CardContent className="h-44">
+                <DynamicBar
+                  data={{
+                    labels: report.account_creation_trends.map((t) => t.date),
+                    datasets: [
+                      {
+                        label: "New Accounts",
+                        data: report.account_creation_trends.map((t) => t.count),
+                        backgroundColor: "rgba(16, 185, 129, 0.5)",
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          stepSize: 10,
+                          callback: function (value) {
+                            return Number.isInteger(value) ? (value as number) : "";
+                          },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </section>
         </>
       )}
     </main>

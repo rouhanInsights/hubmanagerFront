@@ -21,16 +21,11 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [hasUnseen, setHasUnseen] = useState(false);
   const [readOrderIds, setReadOrderIds] = useState<Set<number>>(new Set());
-  const [cleared, setCleared] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const interactionAllowed = useRef<boolean>(false);
   const clearedOrderIdsRef = useRef<Set<number>>(new Set());
-
-  // ✅ Build WebSocket URL dynamically based on environment
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5001";
-  const SOCKET_URL = base.replace(/^http/, typeof window !== "undefined" && window.location.protocol === "https:" ? "wss" : "ws");
 
   // ✅ Load cleared notifications from localStorage
   useEffect(() => {
@@ -45,12 +40,11 @@ export function NotificationBell() {
     }
   }, []);
 
-  // ✅ Setup audio playback on click
+  // ✅ Setup audio playback on user interaction
   useEffect(() => {
     audioRef.current = new Audio("/notification.wav");
 
     const allowAudioPlayback = () => {
-      console.log("🖱️ User clicked, audio unlocked.");
       interactionAllowed.current = true;
       document.removeEventListener("click", allowAudioPlayback);
     };
@@ -70,42 +64,40 @@ export function NotificationBell() {
   };
 
   // ✅ Setup WebSocket connection
-useEffect(() => {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5001";
-  const socket = io(base, {
-    transports: ["websocket"], // WebSocket transport only
-    withCredentials: true,
-  });
+  useEffect(() => {
+    const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5001";
+    const socket = io(base, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
 
-  socketRef.current = socket;
+    socketRef.current = socket;
 
-  socket.on("connect", () => {
-    console.log("🔌 Connected to WebSocket");
-  });
+    socket.on("connect", () => {
+      console.log("🔌 Connected to WebSocket");
+    });
 
-  socket.on("new_notification", (notif: Notification) => {
-    if (clearedOrderIdsRef.current.has(notif.order_id)) return;
+    socket.on("new_notification", (notif: Notification) => {
+      if (clearedOrderIdsRef.current.has(notif.order_id)) return;
 
-    toast.success(`🛒 New order received: #${notif.order_id}`);
-    playNotificationSound();
-    setNotifications((prev) => [notif, ...prev]);
-    setHasUnseen(true);
-  });
+      toast.success(`🛒 New order received: #${notif.order_id}`);
+      playNotificationSound();
+      setNotifications((prev) => [notif, ...prev]);
+      setHasUnseen(true);
+    });
 
-  socket.on("disconnect", () => {
-    console.warn("❌ Disconnected from WebSocket");
-  });
+    socket.on("disconnect", () => {
+      console.warn("❌ Disconnected from WebSocket");
+    });
 
-  return () => {
-    socket.disconnect();
-  };
-}, []);
-
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const handleOpenModal = () => {
     setShowModal(true);
     setHasUnseen(false);
-    setCleared(false);
   };
 
   const handleClearAll = () => {
@@ -118,7 +110,6 @@ useEffect(() => {
 
     setNotifications([]);
     setReadOrderIds(new Set());
-    setCleared(true);
   };
 
   return (

@@ -159,7 +159,10 @@ export default function ProductListPage() {
     field: keyof Product,
     value: string | number | boolean
   ) => {
-    setModalProduct((prev) => ({ ...prev, [field]: value as any }));
+setModalProduct((prev) => ({
+  ...prev,
+  [field]: value as Product[typeof field],
+}));
   };
 
   const handleModalSubmit = async () => {
