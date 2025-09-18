@@ -132,20 +132,20 @@ export default function DeliveryAgentPage() {
                       />
                     </td>
                     <td className="p-2">
-                      {agent.upload_img ? (
-                        <button
-                          onClick={() =>
-                            handleDownload(agent.upload_img!, `agent_${agent.user_id}.jpg`)
-                          }
-                          className="text-blue-600 underline flex items-center gap-1"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download
-                        </button>
-                      ) : (
-                        <span className="text-gray-500">No image</span>
-                      )}
-                    </td>
+  {agent.upload_img ? (
+    <a
+      href={agent.upload_img}
+      download={`agent_${agent.user_id}.jpg`}
+      className="text-blue-600 underline flex items-center gap-1"
+    >
+      <Download className="w-4 h-4" />
+      Download
+    </a>
+  ) : (
+    <span className="text-gray-500">No image</span>
+  )}
+</td>
+
                     <td className="p-2">
                       {agent.status === "pending" ? (
                         <div className="flex gap-2">
