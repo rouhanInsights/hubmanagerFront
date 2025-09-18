@@ -122,8 +122,8 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     <Image
       src="/cff.png"
       alt="Calcutta Fresh Foods"
-      width={300}
-      height={80}
+      width={270}
+      height={70}
       className="rounded"
       priority
     />
