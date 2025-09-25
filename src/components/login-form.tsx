@@ -78,7 +78,7 @@ export function LoginForm() {
           required
         />
       </div>
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full bg-[#006b3d] hover:bg-[#18A558] text-white" disabled={loading}>
         {loading ? "Logging in..." : "Login"}
       </Button>
        {/* <p className="text-sm text-center text-muted-foreground">
