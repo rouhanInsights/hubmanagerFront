@@ -32,7 +32,9 @@ import {
 } from "@/components/ui/sidebar";
 import Image from "next/image";
 
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = React.useState({
     name: "Loading...",
     email: "",
@@ -106,9 +108,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
       url: "/hubmanager",
       icon: Users,
       isActive: true,
-      items: [
-        { title: "Hub Manager Panel", url: "/hubmanager", icon: Users },
-      ],
+      items: [{ title: "Hub Manager Panel", url: "/hubmanager", icon: Users }],
     },
   ];
 
@@ -118,22 +118,22 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-  <Link href="/" className="flex items-center gap-2">
-    <Image
-      src="/cff.png"
-      alt="Calcutta Fresh Foods"
-      width={270}
-      height={70}
-      className="rounded"
-      priority
-    />
-    <div className="flex flex-col text-left">
-      <span className="text-sm font-semibold text-sidebar-foreground leading-tight">
-        {/* Logo Text (optional) */}
-      </span>
-    </div>
-  </Link>
-</SidebarMenuButton>
+              <Link href="/" className="flex items-center gap-2">
+                <Image
+                  src="/cff.png"
+                  alt="Calcutta Fresh Foods"
+                  width={270}
+                  height={70}
+                  className="rounded"
+                  priority
+                />
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-semibold text-sidebar-foreground leading-tight">
+                    {/* Logo Text (optional) */}
+                  </span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
