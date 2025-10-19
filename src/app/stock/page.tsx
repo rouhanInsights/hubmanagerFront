@@ -24,6 +24,9 @@ interface Product {
 export default function StockManagementPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editingProductData, setEditingProductData] = useState<Product | null>(
+    null
+  );
 
   const fetchProducts = async () => {
     try {
@@ -49,16 +52,9 @@ export default function StockManagementPage() {
     fetchProducts();
   }, []);
 
-  const handleChange = (
-    id: number,
-    field: keyof Product,
-    value: string | number
-  ) => {
-    setProducts((prev) =>
-      prev.map((item) =>
-        item.product_id === id ? { ...item, [field]: value } : item
-      )
-    );
+  // update only the editing copy while editing
+  const handleChange = (field: keyof Product, value: string | number) => {
+    setEditingProductData((prev) => (prev ? { ...prev, [field]: value } : prev));
   };
 
   const handleSave = async (product: Product) => {
@@ -83,6 +79,7 @@ export default function StockManagementPage() {
       if (res.ok) {
         toast.success("Stock updated");
         setEditingRow(null);
+        setEditingProductData(null);
         fetchProducts();
       } else {
         toast.error("Update failed");
@@ -134,36 +131,39 @@ export default function StockManagementPage() {
                         <td className="p-2">
                           <Input
                             type="number"
-                            value={product.stock_quantity ?? 0}
+                            value={editingProductData?.stock_quantity ?? 0}
                             onChange={(e) =>
-                              handleChange(
-                                product.product_id!,
-                                "stock_quantity",
-                                parseInt(e.target.value)
-                              )
+                              handleChange("stock_quantity", parseInt(e.target.value))
                             }
                           />
                         </td>
                         <td className="p-2">
-                          <Input
-                            value={product.product_stock_available ?? ""}
+                          <select
+                            value={String(editingProductData?.product_stock_available ?? "")}
                             onChange={(e) =>
-                              handleChange(
-                                product.product_id!,
-                                "product_stock_available",
-                                e.target.value
-                              )
+                              handleChange("product_stock_available", e.target.value)
                             }
-                          />
+                            className="w-full border px-2 py-1 rounded"
+                          >
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                          </select>
                         </td>
                         <td className="p-2 space-x-2">
-                          <Button size="sm" onClick={() => handleSave(product)}>
+                          <Button
+                            size="sm"
+                            onClick={() => editingProductData && handleSave(editingProductData)}
+                          >
                             Save
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => setEditingRow(null)}
+                            onClick={() => {
+                              // Cancel: discard edits by clearing the editing copy
+                              setEditingRow(null);
+                              setEditingProductData(null);
+                            }}
                           >
                             Cancel
                           </Button>
@@ -176,7 +176,11 @@ export default function StockManagementPage() {
                         <td className="p-2">
                           <Button
                             size="sm"
-                            onClick={() => setEditingRow(product.product_id!)}
+                            onClick={() => {
+                              setEditingRow(product.product_id!);
+                              // create an editing copy so changes don't affect the displayed list until saved
+                              setEditingProductData({ ...product });
+                            }}
                           >
                             Edit
                           </Button>
@@ -184,10 +188,10 @@ export default function StockManagementPage() {
                       </>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                 ))}
+               </tbody>
+             </table>
+           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
