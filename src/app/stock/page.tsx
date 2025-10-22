@@ -17,7 +17,7 @@ interface Product {
   price: number;
   sale_price: number;
   stock_quantity: number;
-  product_stock_available: string;
+  product_stock_available: boolean;
   image_url: string;
 }
 
@@ -38,7 +38,7 @@ export default function StockManagementPage() {
         price: p.price ?? 0,
         sale_price: p.sale_price ?? 0,
         stock_quantity: p.stock_quantity ?? 0,
-        product_stock_available: p.product_stock_available ?? "",
+        product_stock_available: Boolean(p.product_stock_available),
         image_url: p.image_url ?? "",
       }));
       setProducts(validData);
@@ -172,7 +172,7 @@ export default function StockManagementPage() {
                     ) : (
                       <>
                         <td className="p-2">{product.stock_quantity}</td>
-                        <td className="p-2">{product.product_stock_available}</td>
+                        <td className="p-2">{product.product_stock_available ? "Yes" : "No"}</td>
                         <td className="p-2">
                           <Button
                             size="sm"
